@@ -99,6 +99,9 @@ Questions to answer:
 Output:
 - `route-scoring-model.md`
 
+Status:
+- completed
+
 ### 5. iOS Information Architecture
 
 Goal:
@@ -151,10 +154,10 @@ Avoid these for now:
 ## Immediate Next Move
 
 The immediate next artifact should be:
-- `route-scoring-model.md`
+- `ios-information-architecture.md`
 
 After that, the next written design doc should be:
-- `ios-information-architecture.md`
+- `ios-navigation-experience.md`
 
 Status:
 - completed
