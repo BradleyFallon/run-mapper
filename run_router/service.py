@@ -1,0 +1,571 @@
+from __future__ import annotations
+
+import json
+import math
+import os
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterable
+
+
+ORS_URL_TEMPLATE = "https://api.openrouteservice.org/v2/directions/{profile}/geojson"
+EARTH_RADIUS_M = 6_371_000
+MILES_TO_METERS = 1609.344
+
+PAVED_SURFACE_IDS = {1, 3, 4, 14}
+TRAIL_WAYTYPE_IDS = {4, 5, 7}
+
+
+class RouteError(Exception):
+    """Raised when the route request or input is invalid."""
+
+
+@dataclass
+class RouteResult:
+    route_feature: dict
+    raw_geojson: dict
+    distance_m: float
+    duration_s: float
+    ascent_m: float
+    descent_m: float
+    min_ele_m: float | None
+    max_ele_m: float | None
+    extras: dict
+
+    @property
+    def distance_km(self) -> float:
+        return self.distance_m / 1000.0
+
+    @property
+    def distance_mi(self) -> float:
+        return self.distance_m / MILES_TO_METERS
+
+
+@dataclass
+class LoopPreferenceProfile:
+    pavement_preference: float
+    quiet_preference: float
+    green_preference: float
+    hill_preference: float
+
+
+@dataclass
+class LoopCandidate:
+    start_coord: list[float]
+    start_offset_m: float
+    seed: int
+    route: RouteResult
+    score: float
+    score_breakdown: dict[str, float]
+
+
+@dataclass
+class LlmPreferenceHint:
+    preferences: LoopPreferenceProfile
+    summary: str
+
+
+def parse_coord(text: str) -> list[float]:
+    try:
+        lon_s, lat_s = text.split(",", 1)
+        lon = float(lon_s.strip())
+        lat = float(lat_s.strip())
+    except Exception as exc:
+        raise RouteError(f"Bad coordinate '{text}'. Expected LON,LAT") from exc
+
+    return validate_lon_lat(lon, lat, raw=text)
+
+
+def validate_lon_lat(lon: float, lat: float, *, raw: str | None = None) -> list[float]:
+    if not -180 <= lon <= 180:
+        raise RouteError(f"Longitude out of range in '{raw or f'{lon},{lat}'}'")
+    if not -90 <= lat <= 90:
+        raise RouteError(f"Latitude out of range in '{raw or f'{lon},{lat}'}'")
+    return [lon, lat]
+
+
+def parse_coord_lines(text: str) -> list[list[float]]:
+    coords: list[list[float]] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped:
+            coords.append(parse_coord(stripped))
+    return validate_coords(coords)
+
+
+def validate_coords(coords: Iterable[Iterable[float]], *, minimum: int = 2) -> list[list[float]]:
+    normalized = [[float(coord[0]), float(coord[1])] for coord in coords]
+    if len(normalized) < minimum:
+        raise RouteError(f"Pass at least {minimum} coordinate{'s' if minimum != 1 else ''}.")
+    return normalized
+
+
+def parse_positive_float(value: object, *, name: str, minimum: float = 0.0) -> float:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError) as exc:
+        raise RouteError(f"{name} must be a number.") from exc
+
+    if parsed < minimum:
+        comparator = "greater than zero" if minimum > 0 else f"at least {minimum}"
+        raise RouteError(f"{name} must be {comparator}.")
+    return parsed
+
+
+def parse_bias(value: object, *, name: str, minimum: float = 0.0, maximum: float = 1.0) -> float:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError) as exc:
+        raise RouteError(f"{name} must be a number.") from exc
+    if parsed < minimum or parsed > maximum:
+        raise RouteError(f"{name} must be between {minimum} and {maximum}.")
+    return parsed
+
+
+def miles_to_meters(miles: float) -> float:
+    return miles * MILES_TO_METERS
+
+
+def meters_to_feet(meters: float) -> float:
+    return meters * 3.28084
+
+
+def compute_elevation_stats(
+    coords: list[list[float]],
+    noise_threshold_m: float = 2.0,
+) -> tuple[float, float, float | None, float | None]:
+    elevations = [pt[2] for pt in coords if len(pt) >= 3 and pt[2] is not None]
+    if not elevations:
+        return 0.0, 0.0, None, None
+
+    ascent = 0.0
+    descent = 0.0
+
+    for idx in range(1, len(elevations)):
+        delta = elevations[idx] - elevations[idx - 1]
+        if delta >= noise_threshold_m:
+            ascent += delta
+        elif delta <= -noise_threshold_m:
+            descent += abs(delta)
+
+    return ascent, descent, min(elevations), max(elevations)
+
+
+def geodesic_offset(origin: list[float], distance_m: float, bearing_deg: float) -> list[float]:
+    lon_deg, lat_deg = origin
+    bearing_rad = math.radians(bearing_deg)
+    lat1 = math.radians(lat_deg)
+    lon1 = math.radians(lon_deg)
+    angular_distance = distance_m / EARTH_RADIUS_M
+
+    lat2 = math.asin(
+        math.sin(lat1) * math.cos(angular_distance)
+        + math.cos(lat1) * math.sin(angular_distance) * math.cos(bearing_rad)
+    )
+    lon2 = lon1 + math.atan2(
+        math.sin(bearing_rad) * math.sin(angular_distance) * math.cos(lat1),
+        math.cos(angular_distance) - math.sin(lat1) * math.sin(lat2),
+    )
+
+    lon = ((math.degrees(lon2) + 540) % 360) - 180
+    lat = math.degrees(lat2)
+    return validate_lon_lat(lon, lat)
+
+
+def generate_candidate_starts(center: list[float], radius_m: float) -> list[tuple[list[float], float]]:
+    starts: list[tuple[list[float], float]] = [(center, 0.0)]
+    if radius_m <= 0:
+        return starts
+
+    for ring_distance in (radius_m * 0.45, radius_m * 0.9):
+        for bearing in (0, 60, 120, 180, 240, 300):
+            starts.append((geodesic_offset(center, ring_distance, bearing), ring_distance))
+    return starts
+
+
+def extract_response_text(data: dict) -> str:
+    output_text = data.get("output_text")
+    if isinstance(output_text, str) and output_text.strip():
+        return output_text
+
+    for item in data.get("output", []):
+        for content in item.get("content", []):
+            if content.get("type") == "output_text" and content.get("text"):
+                return content["text"]
+    raise RouteError("OpenAI response did not include text output.")
+
+
+def maybe_apply_llm_preferences(
+    *,
+    design_brief: str,
+    base_preferences: LoopPreferenceProfile,
+) -> LlmPreferenceHint | None:
+    if not design_brief.strip():
+        return None
+
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        return None
+
+    import requests
+
+    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "summary": {"type": "string"},
+            "pavement_preference": {"type": "number", "minimum": 0, "maximum": 1},
+            "quiet_preference": {"type": "number", "minimum": 0, "maximum": 1},
+            "green_preference": {"type": "number", "minimum": 0, "maximum": 1},
+            "hill_preference": {"type": "number", "minimum": -1, "maximum": 1},
+        },
+        "required": [
+            "summary",
+            "pavement_preference",
+            "quiet_preference",
+            "green_preference",
+            "hill_preference",
+        ],
+    }
+
+    payload = {
+        "model": model,
+        "input": [
+            {
+                "role": "system",
+                "content": (
+                    "Convert a runner's natural language route brief into numeric routing "
+                    "preferences. Return JSON only."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Current preferences: paved={base_preferences.pavement_preference:.2f}, "
+                    f"quiet={base_preferences.quiet_preference:.2f}, "
+                    f"green={base_preferences.green_preference:.2f}, "
+                    f"hills={base_preferences.hill_preference:.2f}. "
+                    f"Runner brief: {design_brief}"
+                ),
+            },
+        ],
+        "text": {
+            "format": {
+                "type": "json_schema",
+                "name": "route_design_preferences",
+                "strict": True,
+                "schema": schema,
+            }
+        },
+    }
+
+    try:
+        response = requests.post(
+            "https://api.openai.com/v1/responses",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+            timeout=45,
+        )
+        response.raise_for_status()
+        data = response.json()
+        parsed = json.loads(extract_response_text(data))
+    except Exception as exc:
+        raise RouteError(f"OpenAI design parsing failed: {exc}") from exc
+
+    preferences = LoopPreferenceProfile(
+        pavement_preference=parse_bias(
+            parsed["pavement_preference"], name="pavement_preference"
+        ),
+        quiet_preference=parse_bias(parsed["quiet_preference"], name="quiet_preference"),
+        green_preference=parse_bias(parsed["green_preference"], name="green_preference"),
+        hill_preference=parse_bias(
+            parsed["hill_preference"], name="hill_preference", minimum=-1.0, maximum=1.0
+        ),
+    )
+    return LlmPreferenceHint(preferences=preferences, summary=parsed["summary"].strip())
+
+
+def average_extra_score(extras: dict, key: str) -> float | None:
+    node = extras.get(key) or extras.get(f"{key}s")
+    if not node:
+        return None
+
+    summary = node.get("summary") or []
+    total_distance = sum(item.get("distance", 0.0) for item in summary)
+    if total_distance <= 0:
+        return None
+
+    weighted = sum(item.get("value", 0.0) * item.get("distance", 0.0) for item in summary)
+    return weighted / total_distance
+
+
+def ratio_for_values(extras: dict, key: str, accepted_values: set[int]) -> float | None:
+    node = extras.get(key) or extras.get(f"{key}s")
+    if not node:
+        return None
+
+    summary = node.get("summary") or []
+    total_distance = sum(item.get("distance", 0.0) for item in summary)
+    if total_distance <= 0:
+        return None
+
+    accepted_distance = sum(
+        item.get("distance", 0.0)
+        for item in summary
+        if int(item.get("value", -1)) in accepted_values
+    )
+    return accepted_distance / total_distance
+
+
+def clamp(value: float, minimum: float = 0.0, maximum: float = 1.0) -> float:
+    return max(minimum, min(maximum, value))
+
+
+def score_loop_candidate(
+    *,
+    route: RouteResult,
+    target_distance_m: float,
+    start_offset_m: float,
+    max_start_offset_m: float,
+    preferences: LoopPreferenceProfile,
+) -> tuple[float, dict[str, float]]:
+    extras = route.extras
+    paved_ratio = ratio_for_values(extras, "surface", PAVED_SURFACE_IDS)
+    trail_ratio = ratio_for_values(extras, "waytype", TRAIL_WAYTYPE_IDS)
+    average_noise = average_extra_score(extras, "noise")
+    average_green = average_extra_score(extras, "green")
+
+    paved_target = 0.15 + (0.8 * preferences.pavement_preference)
+    pavement_score = 0.5
+    if paved_ratio is not None:
+        pavement_score = 1 - min(1.0, abs(paved_ratio - paved_target))
+    elif trail_ratio is not None:
+        pavement_score = 1 - min(1.0, abs((1 - trail_ratio) - paved_target))
+
+    quiet_score = 0.5 if average_noise is None else clamp(1 - (average_noise / 10.0))
+    green_score = 0.5 if average_green is None else clamp(average_green / 10.0)
+
+    ascent_ft_per_mi = 0.0
+    if route.distance_mi > 0:
+        ascent_ft_per_mi = meters_to_feet(route.ascent_m) / route.distance_mi
+
+    hill_target_ft_per_mi = 50 + ((preferences.hill_preference + 1) / 2.0) * 350
+    hill_score = 1 - min(1.0, abs(ascent_ft_per_mi - hill_target_ft_per_mi) / 350.0)
+
+    distance_score = 1 - min(
+        1.0,
+        abs(route.distance_m - target_distance_m) / max(target_distance_m * 0.35, 1.0),
+    )
+    start_score = 1.0
+    if max_start_offset_m > 0:
+        start_score = 1 - min(1.0, start_offset_m / max_start_offset_m)
+
+    score_breakdown = {
+        "distance": distance_score,
+        "pavement": pavement_score,
+        "quiet": quiet_score,
+        "green": green_score,
+        "hills": hill_score,
+        "start": start_score,
+    }
+
+    score = (
+        distance_score * 0.34
+        + pavement_score * 0.2
+        + quiet_score * 0.14
+        + green_score * 0.12
+        + hill_score * 0.12
+        + start_score * 0.08
+    )
+    return score, score_breakdown
+
+
+def fetch_directions_geojson(
+    *,
+    api_key: str,
+    profile: str,
+    coords: list[list[float]],
+    preference: str = "recommended",
+    options: dict | None = None,
+    extra_info: list[str] | None = None,
+    noise_threshold_m: float = 2.0,
+    timeout: int = 60,
+) -> RouteResult:
+    import requests
+
+    validate_coords(coords, minimum=1)
+    if not api_key:
+        raise RouteError("Missing ORS API key.")
+
+    url = ORS_URL_TEMPLATE.format(profile=profile)
+    headers = {
+        "Authorization": api_key,
+        "Content-Type": "application/json",
+        "Accept": "application/json, application/geo+json",
+    }
+    payload: dict[str, object] = {
+        "coordinates": coords,
+        "elevation": True,
+        "instructions": True,
+        "preference": preference,
+    }
+    if options:
+        payload["options"] = options
+    if extra_info:
+        payload["extra_info"] = extra_info
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=timeout)
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        detail = ""
+        try:
+            body = exc.response.json()
+            detail = body.get("error") or body.get("message") or json.dumps(body)
+        except Exception:
+            detail = exc.response.text if exc.response is not None else str(exc)
+        raise RouteError(f"ORS request failed: {detail}") from exc
+    except requests.RequestException as exc:
+        raise RouteError(f"ORS request failed: {exc}") from exc
+
+    data = response.json()
+    features = data.get("features") or []
+    if not features:
+        raise RouteError("No route returned by ORS.")
+
+    feature = features[0]
+    route_coords = feature["geometry"]["coordinates"]
+    props = feature.get("properties", {})
+    summary = props.get("summary", {})
+    distance_m = float(summary.get("distance", 0.0))
+    duration_s = float(summary.get("duration", 0.0))
+    ascent_m, descent_m, min_ele_m, max_ele_m = compute_elevation_stats(
+        route_coords,
+        noise_threshold_m=noise_threshold_m,
+    )
+
+    return RouteResult(
+        route_feature=feature,
+        raw_geojson=data,
+        distance_m=distance_m,
+        duration_s=duration_s,
+        ascent_m=ascent_m,
+        descent_m=descent_m,
+        min_ele_m=min_ele_m,
+        max_ele_m=max_ele_m,
+        extras=props.get("extras", {}),
+    )
+
+
+def fetch_route(
+    *,
+    api_key: str,
+    profile: str,
+    coords: list[list[float]],
+    noise_threshold_m: float = 2.0,
+    timeout: int = 60,
+) -> RouteResult:
+    validate_coords(coords, minimum=2)
+    return fetch_directions_geojson(
+        api_key=api_key,
+        profile=profile,
+        coords=coords,
+        noise_threshold_m=noise_threshold_m,
+        timeout=timeout,
+    )
+
+
+def build_loop_candidates(
+    *,
+    api_key: str,
+    center: list[float],
+    start_radius_m: float,
+    target_distance_m: float,
+    profile: str,
+    preferences: LoopPreferenceProfile,
+    noise_threshold_m: float = 2.0,
+    max_candidates: int = 12,
+    seed_count: int = 4,
+    start_limit: int | None = None,
+) -> list[LoopCandidate]:
+    if profile not in {"foot-walking", "foot-hiking"}:
+        raise RouteError("Loop generation currently supports foot-walking and foot-hiking.")
+    if seed_count < 1:
+        raise RouteError("seed_count must be at least 1.")
+
+    weightings = {
+        "green": round(0.25 + preferences.green_preference * 0.75, 2),
+        "quiet": round(0.25 + preferences.quiet_preference * 0.75, 2),
+    }
+    options = {
+        "avoid_features": ["ferries", "fords"],
+        "profile_params": {"weightings": weightings},
+    }
+    extra_info = ["surface", "waytype", "green", "noise", "suitability"]
+
+    candidates: list[LoopCandidate] = []
+    last_error: RouteError | None = None
+    starts = generate_candidate_starts(center, start_radius_m)
+    if start_limit is not None:
+        starts = starts[:start_limit]
+
+    for index, (start_coord, start_offset_m) in enumerate(starts):
+        for seed in range(1, seed_count + 1):
+            if len(candidates) >= max_candidates:
+                break
+
+            request_options = {
+                **options,
+                "round_trip": {
+                    "length": int(target_distance_m),
+                    "points": 4 if target_distance_m <= 12_000 else 5,
+                    "seed": index * 10 + seed,
+                },
+            }
+            try:
+                route = fetch_directions_geojson(
+                    api_key=api_key,
+                    profile=profile,
+                    coords=[start_coord],
+                    preference="recommended",
+                    options=request_options,
+                    extra_info=extra_info,
+                    noise_threshold_m=noise_threshold_m,
+                )
+            except RouteError as exc:
+                last_error = exc
+                continue
+
+            score, score_breakdown = score_loop_candidate(
+                route=route,
+                target_distance_m=target_distance_m,
+                start_offset_m=start_offset_m,
+                max_start_offset_m=start_radius_m,
+                preferences=preferences,
+            )
+            candidates.append(
+                LoopCandidate(
+                    start_coord=start_coord,
+                    start_offset_m=start_offset_m,
+                    seed=index * 10 + seed,
+                    route=route,
+                    score=score,
+                    score_breakdown=score_breakdown,
+                )
+            )
+
+    if not candidates:
+        if last_error is not None:
+            raise last_error
+        raise RouteError("No viable loop routes were returned for that area and preference set.")
+
+    candidates.sort(key=lambda candidate: candidate.score, reverse=True)
+    return candidates
+
+
+def write_geojson(route_geojson: dict, output_path: Path) -> None:
+    output_path.write_text(json.dumps(route_geojson, indent=2), encoding="utf-8")

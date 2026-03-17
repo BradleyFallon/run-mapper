@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Run Router</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    >
+    <style>
+      :root {
+        --bg-1: #f6f1e7;
+        --bg-2: #ebe2d0;
+        --panel: rgba(250, 246, 238, 0.9);
+        --panel-strong: #f9f4ea;
+        --text: #1a231d;
+        --muted: #5d665f;
+        --line: rgba(26, 35, 29, 0.12);
+        --accent: #d96f32;
+        --accent-2: #245d48;
+        --accent-3: #93b43b;
+        --danger: #9e3d40;
+        --shadow: 0 24px 60px rgba(32, 43, 35, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        font-family: "Space Grotesk", sans-serif;
+        background:
+          radial-gradient(circle at 15% 20%, rgba(147, 180, 59, 0.18), transparent 26rem),
+          radial-gradient(circle at 90% 15%, rgba(217, 111, 50, 0.16), transparent 24rem),
+          linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.18;
+        background-image:
+          repeating-linear-gradient(
+            115deg,
+            transparent 0,
+            transparent 18px,
+            rgba(36, 93, 72, 0.08) 18px,
+            rgba(36, 93, 72, 0.08) 19px
+          );
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: minmax(360px, 460px) 1fr;
+        gap: 20px;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .panel,
+      .map-panel {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        border-radius: 28px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+
+      .panel {
+        padding: 28px;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--accent-2);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 8ch;
+        font-size: clamp(2.8rem, 4vw, 4.5rem);
+        line-height: 0.94;
+      }
+
+      .lede {
+        margin: 18px 0 24px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      form {
+        display: grid;
+        gap: 16px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      textarea,
+      input,
+      select,
+      button {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        font: inherit;
+      }
+
+      textarea,
+      input,
+      select {
+        padding: 14px 16px;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.76);
+      }
+
+      textarea {
+        min-height: 108px;
+        resize: vertical;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .slider-row {
+        display: grid;
+        gap: 4px;
+        padding: 12px 14px 14px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.56);
+      }
+
+      .slider-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .slider-value {
+        color: var(--accent-2);
+        font-weight: 700;
+      }
+
+      .hint {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .mono {
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+      }
+
+      button {
+        cursor: pointer;
+        padding: 14px 16px;
+        font-weight: 700;
+        transition: transform 160ms ease, box-shadow 160ms ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      .primary {
+        border: 0;
+        color: #fff8f1;
+        background: linear-gradient(135deg, var(--accent), #bf4c18);
+        box-shadow: 0 14px 28px rgba(191, 76, 24, 0.24);
+      }
+
+      .secondary {
+        background: rgba(36, 93, 72, 0.08);
+        color: var(--accent-2);
+      }
+
+      .error,
+      .llm-note {
+        display: none;
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        line-height: 1.45;
+      }
+
+      .error {
+        color: #fff6f5;
+        background: var(--danger);
+      }
+
+      .llm-note {
+        background: rgba(147, 180, 59, 0.12);
+        color: var(--accent-2);
+      }
+
+      .visible {
+        display: block;
+      }
+
+      .candidate-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .candidate {
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.56);
+        cursor: pointer;
+        transition: border-color 160ms ease, transform 160ms ease;
+      }
+
+      .candidate:hover {
+        transform: translateY(-1px);
+      }
+
+      .candidate.active {
+        border-color: rgba(217, 111, 50, 0.42);
+        box-shadow: inset 0 0 0 1px rgba(217, 111, 50, 0.2);
+      }
+
+      .candidate-topline {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .candidate-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .candidate-score {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .candidate-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 12px;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .map-panel {
+        min-height: calc(100vh - 40px);
+      }
+
+      .map-meta {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 500;
+        max-width: 290px;
+        padding: 14px 16px;
+        border-radius: 20px;
+        background: rgba(26, 35, 29, 0.84);
+        color: #f7f3ec;
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+        min-height: calc(100vh - 40px);
+      }
+
+      @media (max-width: 1040px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .map-panel,
+        #map {
+          min-height: 58vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="panel">
+        <p class="eyebrow">Loop Maker</p>
+        <h1>Design a run, then let the router hunt for it.</h1>
+        <p class="lede">
+          Pick a center point, define a loop length, set how far the route can start from that
+          location, then bias the search toward paved, quiet, green, flat, or hilly options.
+        </p>
+
+        <form id="loop-form">
+          <div class="grid-2">
+            <label>
+              Center Coordinate
+              <input id="center-coord" class="mono" value="{{ default_center }}" placeholder="-122.6765,45.5236">
+            </label>
+            <label>
+              Profile
+              <select id="profile">
+                <option value="foot-walking">Foot Walking</option>
+                <option value="foot-hiking">Foot Hiking</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="grid-2">
+            <label>
+              Target Miles
+              <input id="target-distance" type="number" min="1" step="0.5" value="6">
+            </label>
+            <label>
+              Start Radius Miles
+              <input id="start-radius" type="number" min="0" step="0.1" value="1.5">
+            </label>
+          </div>
+
+          <label>
+            Design Brief
+            <textarea id="design-brief" placeholder="Example: I want a sunrise six-miler with mostly smooth pavement, low traffic noise, gentle rollers, and as much park frontage as possible."></textarea>
+          </label>
+          <p class="hint">
+            {% if has_openai_key %}
+            Natural-language design is enabled with <span class="mono">OPENAI_API_KEY</span>.
+            {% else %}
+            Natural-language design becomes active when <span class="mono">OPENAI_API_KEY</span> is set.
+            {% endif %}
+          </p>
+
+          <div class="slider-row">
+            <div class="slider-meta">
+              <span>Pavement Bias</span>
+              <span class="slider-value" id="pavement-output">Mostly paved</span>
+            </div>
+            <input id="pavement-preference" type="range" min="0" max="1" step="0.05" value="0.8">
+            <div class="slider-meta"><span>Trails</span><span>Paved</span></div>
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-meta">
+              <span>Quiet Bias</span>
+              <span class="slider-value" id="quiet-output">Strong</span>
+            </div>
+            <input id="quiet-preference" type="range" min="0" max="1" step="0.05" value="0.8">
+            <div class="slider-meta"><span>Doesn't matter</span><span>Very quiet</span></div>
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-meta">
+              <span>Green Bias</span>
+              <span class="slider-value" id="green-output">High</span>
+            </div>
+            <input id="green-preference" type="range" min="0" max="1" step="0.05" value="0.7">
+            <div class="slider-meta"><span>Neutral</span><span>Park-heavy</span></div>
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-meta">
+              <span>Elevation Bias</span>
+              <span class="slider-value" id="hill-output">Rolling</span>
+            </div>
+            <input id="hill-preference" type="range" min="-1" max="1" step="0.1" value="0">
+            <div class="slider-meta"><span>Flat</span><span>Hilly</span></div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" id="submit-button" type="submit">Generate Loops</button>
+            <button class="secondary" id="location-button" type="button">Use My Location</button>
+          </div>
+        </form>
+
+        <div id="error" class="error"></div>
+        <div id="llm-note" class="llm-note"></div>
+
+        <section class="candidate-list" id="candidate-list"></section>
+      </aside>
+
+      <main class="map-panel">
+        <div class="map-meta">
+          Center format: <span class="mono">LON,LAT</span><br>
+          The app samples multiple start points within your radius and ranks loop candidates by
+          distance fit, pavement, quietness, greenery, hills, and start proximity.
+        </div>
+        <div id="map"></div>
+      </main>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script>
+      const form = document.getElementById("loop-form");
+      const centerCoordInput = document.getElementById("center-coord");
+      const profileInput = document.getElementById("profile");
+      const targetDistanceInput = document.getElementById("target-distance");
+      const startRadiusInput = document.getElementById("start-radius");
+      const designBriefInput = document.getElementById("design-brief");
+      const pavementInput = document.getElementById("pavement-preference");
+      const quietInput = document.getElementById("quiet-preference");
+      const greenInput = document.getElementById("green-preference");
+      const hillInput = document.getElementById("hill-preference");
+      const submitButton = document.getElementById("submit-button");
+      const locationButton = document.getElementById("location-button");
+      const errorBox = document.getElementById("error");
+      const llmNote = document.getElementById("llm-note");
+      const candidateList = document.getElementById("candidate-list");
+
+      const sliderOutputs = {
+        pavement: document.getElementById("pavement-output"),
+        quiet: document.getElementById("quiet-output"),
+        green: document.getElementById("green-output"),
+        hills: document.getElementById("hill-output"),
+      };
+
+      const map = L.map("map", { zoomControl: false }).setView([45.5236, -122.6765], 13);
+      L.control.zoom({ position: "bottomright" }).addTo(map);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      let routeLayer = null;
+      let centerMarker = null;
+      let startMarker = null;
+      let currentCandidates = [];
+      let activeCandidateIndex = 0;
+
+      function setError(message) {
+        errorBox.textContent = message;
+        errorBox.classList.toggle("visible", Boolean(message));
+      }
+
+      function setLlmNote(message) {
+        llmNote.textContent = message;
+        llmNote.classList.toggle("visible", Boolean(message));
+      }
+
+      function setLoading(isLoading) {
+        submitButton.disabled = isLoading;
+        submitButton.textContent = isLoading ? "Generating..." : "Generate Loops";
+      }
+
+      function describePavement(value) {
+        if (value < 0.35) return "Trail-first";
+        if (value < 0.65) return "Balanced";
+        return "Mostly paved";
+      }
+
+      function describeQuiet(value) {
+        if (value < 0.35) return "Low";
+        if (value < 0.65) return "Moderate";
+        return "Strong";
+      }
+
+      function describeGreen(value) {
+        if (value < 0.35) return "Low";
+        if (value < 0.65) return "Moderate";
+        return "High";
+      }
+
+      function describeHills(value) {
+        if (value < -0.35) return "Flat";
+        if (value > 0.35) return "Hilly";
+        return "Rolling";
+      }
+
+      function updateSliderLabels() {
+        sliderOutputs.pavement.textContent = describePavement(Number(pavementInput.value));
+        sliderOutputs.quiet.textContent = describeQuiet(Number(quietInput.value));
+        sliderOutputs.green.textContent = describeGreen(Number(greenInput.value));
+        sliderOutputs.hills.textContent = describeHills(Number(hillInput.value));
+      }
+
+      function parseCenterCoord() {
+        const parts = centerCoordInput.value.split(",");
+        if (parts.length !== 2) {
+          throw new Error("Center coordinate must be in LON,LAT format.");
+        }
+        const lon = Number(parts[0].trim());
+        const lat = Number(parts[1].trim());
+        if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
+          throw new Error("Center coordinate must contain valid numbers.");
+        }
+        return [lon, lat];
+      }
+
+      function scorePercent(score) {
+        return `${Math.round(score * 100)}%`;
+      }
+
+      function renderCandidates() {
+        candidateList.innerHTML = "";
+        currentCandidates.forEach((candidate, index) => {
+          const card = document.createElement("article");
+          card.className = `candidate${index === activeCandidateIndex ? " active" : ""}`;
+          card.innerHTML = `
+            <div class="candidate-topline">
+              <p class="candidate-title">Candidate ${index + 1}</p>
+              <span class="candidate-score">${scorePercent(candidate.score)}</span>
+            </div>
+            <div class="candidate-metrics">
+              <span>${candidate.summary.distance_mi.toFixed(2)} mi</span>
+              <span>${candidate.summary.ascent_ft.toFixed(0)} ft climb</span>
+              <span>${candidate.start_offset_miles.toFixed(2)} mi from center</span>
+              <span>${candidate.summary.duration_min.toFixed(0)} min est.</span>
+            </div>
+          `;
+          card.addEventListener("click", () => {
+            activeCandidateIndex = index;
+            renderCandidates();
+            drawCandidate(candidate);
+          });
+          candidateList.appendChild(card);
+        });
+      }
+
+      function drawCandidate(candidate) {
+        if (routeLayer) routeLayer.remove();
+        if (centerMarker) centerMarker.remove();
+        if (startMarker) startMarker.remove();
+
+        routeLayer = L.geoJSON(candidate.route, {
+          style: {
+            color: "#d96f32",
+            weight: 6,
+            opacity: 0.92
+          }
+        }).addTo(map);
+
+        const [centerLon, centerLat] = parseCenterCoord();
+        centerMarker = L.circleMarker([centerLat, centerLon], {
+          radius: 6,
+          color: "#245d48",
+          weight: 2,
+          fillColor: "#f8f4ea",
+          fillOpacity: 1
+        }).bindTooltip("Requested center").addTo(map);
+
+        startMarker = L.circleMarker([candidate.start_coord[1], candidate.start_coord[0]], {
+          radius: 7,
+          color: "#bf4c18",
+          weight: 2,
+          fillColor: "#fff7ef",
+          fillOpacity: 1
+        }).bindTooltip("Loop start").addTo(map);
+
+        const bounds = routeLayer.getBounds();
+        if (bounds.isValid()) {
+          map.fitBounds(bounds.pad(0.08));
+        }
+      }
+
+      async function generateLoops() {
+        setLoading(true);
+        setError("");
+        setLlmNote("");
+
+        try {
+          parseCenterCoord();
+
+          const response = await fetch("/api/loop", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              center_coord: centerCoordInput.value,
+              profile: profileInput.value,
+              target_distance_miles: targetDistanceInput.value,
+              start_radius_miles: startRadiusInput.value,
+              design_brief: designBriefInput.value,
+              pavement_preference: pavementInput.value,
+              quiet_preference: quietInput.value,
+              green_preference: greenInput.value,
+              hill_preference: hillInput.value
+            })
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || "Loop generation failed.");
+          }
+
+          currentCandidates = data.candidates || [];
+          if (!currentCandidates.length) {
+            throw new Error("No loop candidates were returned.");
+          }
+
+          if (data.llm_hint && data.llm_hint.summary) {
+            setLlmNote(`Design brief applied: ${data.llm_hint.summary}`);
+          }
+
+          activeCandidateIndex = data.best_candidate_index || 0;
+          renderCandidates();
+          drawCandidate(currentCandidates[activeCandidateIndex]);
+        } catch (error) {
+          setError(error.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      [pavementInput, quietInput, greenInput, hillInput].forEach((input) => {
+        input.addEventListener("input", updateSliderLabels);
+      });
+
+      locationButton.addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          setError("Browser geolocation is not available here.");
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            centerCoordInput.value = `${position.coords.longitude.toFixed(5)},${position.coords.latitude.toFixed(5)}`;
+            setError("");
+          },
+          () => {
+            setError("Unable to read your current location.");
+          }
+        );
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        generateLoops();
+      });
+
+      updateSliderLabels();
+    </script>
+  </body>
+</html>
