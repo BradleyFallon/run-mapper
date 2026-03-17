@@ -1,0 +1,7 @@
+interface:
+  display_name: "RouteScout Surface Design"
+  short_description: "Design RouteScout web and iOS surfaces"
+  default_prompt: "Use $routescout-surface-design to design RouteScout web or iOS surfaces while staying aligned with the current brand and product model."
+
+policy:
+  allow_implicit_invocation: true

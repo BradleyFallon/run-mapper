@@ -1,0 +1,7 @@
+interface:
+  display_name: "RouteScout Product Docs"
+  short_description: "Update product docs and planning artifacts"
+  default_prompt: "Use $routescout-product-docs to update RouteScout product docs while keeping terminology and document structure consistent."
+
+policy:
+  allow_implicit_invocation: true

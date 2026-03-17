@@ -74,9 +74,6 @@ Current platform model:
 ## What Is Not Yet Designed
 
 These are the main open design areas:
-- web planner information architecture
-- web planner workspace wireframes
-- launch plan catalog and starter-plan defaults
 - route scoring model
 - iOS information architecture
 - iOS navigation experience
@@ -87,10 +84,23 @@ These are the main open design areas:
 If you are continuing product design work, use this order:
 
 1. [next-design-tasks.md](./next-design-tasks.md)
-2. web planner information architecture
-3. launch plan catalog
-4. route scoring model
-5. iOS information architecture
+2. [web-planner-information-architecture.md](./web-planner-information-architecture.md)
+3. [web-planner-wireframe-spec.md](./web-planner-wireframe-spec.md)
+4. [launch-plan-catalog.md](./launch-plan-catalog.md)
+5. route scoring model
+6. iOS information architecture
+
+## Surface Design
+
+- [web-planner-information-architecture.md](./web-planner-information-architecture.md)
+  Structure of the planning-first web app, including workspace layout and top-level sections.
+- [web-planner-wireframe-spec.md](./web-planner-wireframe-spec.md)
+  Low-fidelity wireframe spec for the web planner screens, panels, and key states.
+
+## Plan Catalog
+
+- [launch-plan-catalog.md](./launch-plan-catalog.md)
+  Starter plans for MVP, including categories, defaults, and basic versus advanced controls.
 
 ## Guidance
 

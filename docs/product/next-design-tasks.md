@@ -64,6 +64,10 @@ Screens or states to wireframe:
 Output:
 - low-fidelity planner wireframes
 
+Status:
+- specified in `web-planner-wireframe-spec.md`
+- ready for actual sketching or mockup work
+
 ### 3. Launch Plan Catalog
 
 Goal:
@@ -77,6 +81,9 @@ Questions to answer:
 
 Output:
 - `launch-plan-catalog.md`
+
+Status:
+- completed
 
 ### 4. Route Scoring Model
 
@@ -144,6 +151,10 @@ Avoid these for now:
 ## Immediate Next Move
 
 The immediate next artifact should be:
-- `web-planner-information-architecture.md`
+- `route-scoring-model.md`
 
-That doc should turn the current product thinking into a concrete planning workspace structure.
+After that, the next written design doc should be:
+- `ios-information-architecture.md`
+
+Status:
+- completed

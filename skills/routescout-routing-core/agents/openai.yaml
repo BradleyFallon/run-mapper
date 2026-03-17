@@ -1,0 +1,7 @@
+interface:
+  display_name: "RouteScout Routing Core"
+  short_description: "Work on ORS runtime and suggestion logic"
+  default_prompt: "Use $routescout-routing-core to update the RouteScout Python runtime, ORS integration, or loop suggestion logic."
+
+policy:
+  allow_implicit_invocation: true
