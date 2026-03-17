@@ -193,10 +193,12 @@ Typography should feel:
 - compact
 - modern
 - precise
+- slightly kinetic in select hero moments
 
 Recommended platform approach:
 - use the iOS system font stack for native performance and familiarity
 - rely on weight, spacing, and hierarchy instead of novelty fonts
+- use italic or slight forward slant only as an accent treatment, not as the default heading style
 
 This supports the Apple-compatible goal while keeping the product credible in a performance context.
 
@@ -248,6 +250,12 @@ Headings:
 - short
 - confident
 - never verbose
+- upright by default
+
+Display and featured titles:
+- may use a subtle italic or forward slant
+- should suggest motion and anticipation without feeling aggressive
+- should be reserved for hero moments, featured route names, or selected-plan emphasis
 
 Body text:
 - concise
@@ -269,6 +277,9 @@ Recommended weights:
 
 Avoid overusing bold.
 The interface should feel disciplined, not shouty.
+
+Avoid overusing slanted typography.
+Too much slant will make the product feel stressed instead of energizing.
 
 ## Spacing System
 
@@ -394,6 +405,25 @@ Selected cards should gain:
 - stronger border contrast
 - slightly brighter surface
 - clearer accent treatment
+
+### Plan Card Art System
+
+Plan cards should use the top half of the card as a visual summary of what the plan prioritizes.
+
+The art zone should not be generic decoration.
+It should communicate plan intent at a glance.
+
+Default art treatments by category:
+- `Confidence`: navigation clarity, loop simplicity, lighting emphasis, or route confidence signals
+- `Training`: elevation profile, terrain consistency, or other technical route graphics
+- `Explore`: landmark-led imagery anchored around the most iconic route highlight
+- `Trail`: topography, trail texture, or terrain suitability signals
+
+Rules:
+- category determines the default art system
+- the specific plan determines the content inside that system
+- keep the framing consistent even when the art content changes
+- prefer data, route, and place signals over decorative illustration
 
 ### Maps
 

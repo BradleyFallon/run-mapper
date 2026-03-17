@@ -51,6 +51,8 @@ These docs define how the product should feel and look.
   Brand direction, market fit, premium positioning, and compatibility goals.
 - [visual-design-system.md](./visual-design-system.md)
   Colors, typography, spacing, surfaces, and UI rules.
+- [style-guide/index.html](./style-guide/index.html)
+  Browser-viewable HTML/CSS style guide for inspecting tokens, typography, components, and planner aesthetics.
 
 ## Current Product Model
 
@@ -74,7 +76,6 @@ Current platform model:
 ## What Is Not Yet Designed
 
 These are the main open design areas:
-- route scoring model
 - iOS information architecture
 - iOS navigation experience
 - sync and account model
@@ -101,6 +102,11 @@ If you are continuing product design work, use this order:
 
 - [launch-plan-catalog.md](./launch-plan-catalog.md)
   Starter plans for MVP, including categories, defaults, and basic versus advanced controls.
+
+## Scoring
+
+- [route-scoring-model.md](./route-scoring-model.md)
+  Shared scoring dimensions, category weighting, plan-level modifiers, and MVP recommendation logic.
 
 ## Guidance
 

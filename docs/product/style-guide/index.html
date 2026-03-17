@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RouteScout Style Guide</title>
+    <link rel="stylesheet" href="./style-guide.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <aside class="side-nav">
+        <div class="brand-lockup">
+          <div class="brand-mark">RS</div>
+          <div>
+            <p class="eyebrow">RouteScout</p>
+            <h1>Style Guide</h1>
+          </div>
+        </div>
+        <p class="side-copy">
+          Edit token values at the top of <code>style-guide.css</code> to adjust the brand system.
+        </p>
+        <nav>
+          <a href="#overview">Overview</a>
+          <a href="#tokens">Tokens</a>
+          <a href="#colors">Colors</a>
+          <a href="#type">Typography</a>
+          <a href="#controls">Controls</a>
+          <a href="#cards">Cards</a>
+          <a href="#planner">Planner Layout</a>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <section class="hero" id="overview">
+          <p class="eyebrow">Premium dark system</p>
+          <h2>Calm, sharp, and built for route planning.</h2>
+          <p class="lede">
+            This page is a live reference for RouteScout web styling. It is intentionally restrained:
+            near-black surfaces, crisp typography, one high-energy accent, and interface patterns
+            tuned for planning on a larger screen.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary">Generate Routes</button>
+            <button class="btn btn-secondary">Save Plan</button>
+            <button class="btn btn-ghost">Compare Options</button>
+          </div>
+        </section>
+
+        <section class="section" id="tokens">
+          <div class="section-heading">
+            <p class="eyebrow">Core Tokens</p>
+            <h3>Design system settings</h3>
+          </div>
+          <div class="token-grid">
+            <article class="token-card">
+              <h4>Fonts</h4>
+              <ul>
+                <li><code>--font-sans</code></li>
+                <li><code>--font-mono</code></li>
+              </ul>
+            </article>
+            <article class="token-card">
+              <h4>Core spacings</h4>
+              <ul>
+                <li><code>--space-2</code> = 8px</li>
+                <li><code>--space-3</code> = 12px</li>
+                <li><code>--space-4</code> = 16px</li>
+                <li><code>--space-6</code> = 24px</li>
+              </ul>
+            </article>
+            <article class="token-card">
+              <h4>Corner radii</h4>
+              <ul>
+                <li><code>--radius-sm</code></li>
+                <li><code>--radius-md</code></li>
+                <li><code>--radius-lg</code></li>
+                <li><code>--radius-xl</code></li>
+              </ul>
+            </article>
+            <article class="token-card">
+              <h4>Core colors</h4>
+              <ul>
+                <li><code>--bg-canvas</code></li>
+                <li><code>--surface-default</code></li>
+                <li><code>--text-primary</code></li>
+                <li><code>--accent-primary</code></li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="colors">
+          <div class="section-heading">
+            <p class="eyebrow">Palette</p>
+            <h3>Color roles</h3>
+          </div>
+          <div class="swatch-grid">
+            <div class="swatch">
+              <div class="swatch-chip bg-canvas"></div>
+              <div>
+                <strong>Canvas</strong>
+                <p>#050607</p>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-chip bg-base"></div>
+              <div>
+                <strong>Base</strong>
+                <p>#0B0D0F</p>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-chip surface-default"></div>
+              <div>
+                <strong>Surface</strong>
+                <p>#111417</p>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-chip surface-raised"></div>
+              <div>
+                <strong>Raised</strong>
+                <p>#171B1F</p>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-chip surface-overlay"></div>
+              <div>
+                <strong>Overlay</strong>
+                <p>#1D2227</p>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-chip accent-primary"></div>
+              <div>
+                <strong>Accent</strong>
+                <p>#E6FF4D</p>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-chip success"></div>
+              <div>
+                <strong>Success</strong>
+                <p>#3DDC97</p>
+              </div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-chip warning"></div>
+              <div>
+                <strong>Warning</strong>
+                <p>#FFB84D</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="type">
+          <div class="section-heading">
+            <p class="eyebrow">Typography</p>
+            <h3>Type scale and rhythm</h3>
+          </div>
+          <div class="type-specimens">
+            <div class="type-card">
+              <p class="eyebrow">Display</p>
+              <p class="type-display">Find the route you actually want to run.</p>
+              <p class="type-display">Find the route that pulls you forward.</p>
+            </div>
+            <div class="type-card">
+              <p class="eyebrow">Headings</p>
+              <h1 class="type-h1">Selected Route</h1>
+              <h2 class="type-h2">Candidate Comparison</h2>
+              <h3 class="type-h3">Plan Settings</h3>
+              <h4 class="type-h4">Advanced Options</h4>
+              <p class="type-caption">Use slant only for featured moments, not for every heading.</p>
+            </div>
+            <div class="type-card">
+              <p class="eyebrow">Body</p>
+              <p class="type-body-lg">
+                RouteScout is planning-first on web. The interface should stay calm even when it is
+                showing dense route information.
+              </p>
+              <p class="type-body">
+                Body copy should be compact and readable. It exists to support decision-making, not
+                to dominate the screen.
+              </p>
+              <p class="type-caption">Caption text is for metadata, secondary notes, and subtle labels.</p>
+            </div>
+            <div class="type-card">
+              <p class="eyebrow">Metrics</p>
+              <p class="metric-large">6.2 mi</p>
+              <p class="metric-medium">44 min</p>
+              <p class="metric-small">420 ft gain</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="controls">
+          <div class="section-heading">
+            <p class="eyebrow">Controls</p>
+            <h3>Buttons, chips, and inputs</h3>
+          </div>
+          <div class="component-grid">
+            <article class="component-card">
+              <h4>Buttons</h4>
+              <div class="stack">
+                <button class="btn btn-primary">Generate Routes</button>
+                <button class="btn btn-secondary">Save Route</button>
+                <button class="btn btn-ghost">Advanced Options</button>
+              </div>
+            </article>
+            <article class="component-card">
+              <h4>Category chips</h4>
+              <div class="chip-row">
+                <button class="chip chip-active">Confidence</button>
+                <button class="chip">Explore</button>
+                <button class="chip">Training</button>
+                <button class="chip">Trail</button>
+              </div>
+            </article>
+            <article class="component-card">
+              <h4>Input stack</h4>
+              <label class="field">
+                <span>Target distance</span>
+                <input type="text" value="6.0 miles" />
+              </label>
+              <label class="field">
+                <span>Start radius</span>
+                <input type="text" value="0.3 miles" />
+              </label>
+              <label class="field">
+                <span>Terrain bias</span>
+                <select>
+                  <option>Flatter</option>
+                  <option>Neutral</option>
+                  <option>Hillier</option>
+                </select>
+              </label>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="cards">
+          <div class="section-heading">
+            <p class="eyebrow">Cards</p>
+            <h3>Plan art follows plan intent</h3>
+          </div>
+          <p class="section-support">
+            The top half of a plan card should summarize what that plan prioritizes most. Training
+            plans use data graphics, confidence plans use navigation clarity graphics, and explore
+            plans use landmark-led imagery.
+          </p>
+          <div class="component-grid card-showcase">
+            <article class="plan-card trading-card playing-card">
+              <div class="card-topline">
+                <span class="card-kicker">Confidence Plan</span>
+                <span class="card-code">PLN-01</span>
+              </div>
+              <div class="card-titlebar">
+                <div>
+                  <p class="card-subtitle">Starter Plan</p>
+                  <h4>Safe Early Morning</h4>
+                </div>
+                <span class="card-badge">A</span>
+              </div>
+              <div class="card-art card-art-navigation">
+                <div class="nav-zone"></div>
+                <div class="nav-loop"></div>
+                <div class="nav-path"></div>
+                <span class="nav-node nav-node-start"></span>
+                <span class="nav-node nav-node-mid"></span>
+                <span class="nav-node nav-node-end"></span>
+                <div class="card-art-overlay">
+                  <span class="card-art-label">Lighting + clarity</span>
+                </div>
+              </div>
+              <div class="card-type-line">
+                <span class="card-type">Route Confidence</span>
+                <span class="card-rarity">Starter</span>
+              </div>
+              <div class="card-bottom-panel">
+                <p class="card-flavor">
+                  Reliable, close, flatter, and easier to follow. A calm default for unfamiliar
+                  places.
+                </p>
+                <div class="card-divider"></div>
+                <div class="card-stat-strip">
+                  <div class="card-stat">
+                    <span class="card-stat-label">Shape</span>
+                    <strong>Loop</strong>
+                  </div>
+                  <div class="card-stat">
+                    <span class="card-stat-label">Surface</span>
+                    <strong>Paved</strong>
+                  </div>
+                  <div class="card-stat">
+                    <span class="card-stat-label">Feel</span>
+                    <strong>Simple</strong>
+                  </div>
+                </div>
+                <div class="plan-meta">
+                  <span>Closer start</span>
+                  <span>Flatter bias</span>
+                  <span>Low friction</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="plan-card trading-card playing-card">
+              <div class="card-topline">
+                <span class="card-kicker">Training Plan</span>
+                <span class="card-code">PLN-04</span>
+              </div>
+              <div class="card-titlebar">
+                <div>
+                  <p class="card-subtitle">Starter Plan</p>
+                  <h4>Race Prep Hills</h4>
+                </div>
+                <span class="card-badge">T</span>
+              </div>
+              <div class="card-art card-art-elevation">
+                <div class="chart-grid"></div>
+                <svg class="elevation-chart" viewBox="0 0 260 160" aria-hidden="true">
+                  <polyline
+                    points="8,132 42,120 78,90 112,72 150,84 188,48 224,58 252,26"
+                  ></polyline>
+                </svg>
+                <div class="elevation-markers">
+                  <span>820 ft gain</span>
+                  <span>steady climb set</span>
+                </div>
+                <div class="card-art-overlay">
+                  <span class="card-art-label">Elevation profile</span>
+                </div>
+              </div>
+              <div class="card-type-line">
+                <span class="card-type">Technical Training</span>
+                <span class="card-rarity">Starter</span>
+              </div>
+              <div class="card-bottom-panel">
+                <p class="card-flavor">
+                  Precise distance, reliable pavement, and a repeatable climbing pattern for race
+                  prep.
+                </p>
+                <div class="card-divider"></div>
+                <div class="card-stat-strip">
+                  <div class="card-stat">
+                    <span class="card-stat-label">Surface</span>
+                    <strong>Consistent</strong>
+                  </div>
+                  <div class="card-stat">
+                    <span class="card-stat-label">Profile</span>
+                    <strong>Climbing set</strong>
+                  </div>
+                  <div class="card-stat">
+                    <span class="card-stat-label">Stops</span>
+                    <strong>Minimized</strong>
+                  </div>
+                </div>
+                <div class="plan-meta">
+                  <span>Distance precision</span>
+                  <span>Crosswalk avoidance</span>
+                  <span>Workout ready</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="plan-card trading-card playing-card">
+              <div class="card-topline">
+                <span class="card-kicker">Explore Plan</span>
+                <span class="card-code">PLN-03</span>
+              </div>
+              <div class="card-titlebar">
+                <div>
+                  <p class="card-subtitle">Starter Plan</p>
+                  <h4>City Landmark Run</h4>
+                </div>
+                <span class="card-badge">E</span>
+              </div>
+              <div class="card-art card-art-landmark">
+                <div class="landmark-glow"></div>
+                <div class="landmark-skyline">
+                  <span class="skyline-block skyline-left"></span>
+                  <span class="skyline-block skyline-center"></span>
+                  <span class="skyline-block skyline-right"></span>
+                </div>
+                <div class="landmark-caption">
+                  <strong>Riverfront clock tower</strong>
+                  <span>Iconic route anchor</span>
+                </div>
+                <div class="card-art-overlay">
+                  <span class="card-art-label">Landmark-led route</span>
+                </div>
+              </div>
+              <div class="card-type-line">
+                <span class="card-type">City Exploration</span>
+                <span class="card-rarity">Starter</span>
+              </div>
+              <div class="card-bottom-panel">
+                <p class="card-flavor">
+                  Built around the most memorable parts of the city, with route character leading
+                  over strict training metrics.
+                </p>
+                <div class="card-divider"></div>
+                <div class="card-stat-strip">
+                  <div class="card-stat">
+                    <span class="card-stat-label">Focus</span>
+                    <strong>Landmarks</strong>
+                  </div>
+                  <div class="card-stat">
+                    <span class="card-stat-label">Flow</span>
+                    <strong>Scenic loop</strong>
+                  </div>
+                  <div class="card-stat">
+                    <span class="card-stat-label">Vibe</span>
+                    <strong>Memorable</strong>
+                  </div>
+                </div>
+                <div class="plan-meta">
+                  <span>Photo worthy</span>
+                  <span>Neighborhood texture</span>
+                  <span>Destination first</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="route-card route-card-selected trading-card playing-card">
+              <div class="card-topline">
+                <span class="card-kicker">Selected Route</span>
+                <span class="card-code">RTE-A</span>
+              </div>
+              <div class="card-titlebar">
+                <div>
+                  <p class="card-subtitle">Recommended Route</p>
+                  <h4>Downtown Morning Loop</h4>
+                </div>
+                <span class="card-badge">92</span>
+              </div>
+              <div class="card-art card-art-route-overview">
+                <div class="route-overview-grid"></div>
+                <div class="route-overview-path"></div>
+                <span class="route-overview-node route-overview-start"></span>
+                <span class="route-overview-node route-overview-highlight"></span>
+                <div class="card-art-overlay">
+                  <span class="recommendation">Recommended</span>
+                </div>
+              </div>
+              <div class="card-type-line">
+                <span class="card-type">Recommended Route</span>
+                <span class="card-rarity">Rank 1</span>
+              </div>
+              <div class="card-bottom-panel">
+                <div class="route-metrics">
+                  <div>
+                    <p class="metric-large">6.2 mi</p>
+                    <span class="metric-label">Distance</span>
+                  </div>
+                  <div>
+                    <p class="metric-medium">44 min</p>
+                    <span class="metric-label">Duration</span>
+                  </div>
+                  <div>
+                    <p class="metric-small">420 ft</p>
+                    <span class="metric-label">Gain</span>
+                  </div>
+                </div>
+                <div class="card-divider"></div>
+                <div class="card-stat-strip">
+                  <div class="card-stat">
+                    <span class="card-stat-label">Surface</span>
+                    <strong>Mostly paved</strong>
+                  </div>
+                  <div class="card-stat">
+                    <span class="card-stat-label">Clarity</span>
+                    <strong>High</strong>
+                  </div>
+                  <div class="card-stat">
+                    <span class="card-stat-label">Category</span>
+                    <strong>Confidence</strong>
+                  </div>
+                </div>
+                <p class="route-rationale card-flavor">
+                  Closer to your target, flatter than the alternatives, and more paved overall.
+                </p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="planner">
+          <div class="section-heading">
+            <p class="eyebrow">Planner composition</p>
+            <h3>3-panel web workspace</h3>
+          </div>
+          <div class="planner-demo">
+            <section class="planner-column plan-column">
+              <div class="column-head">
+                <h4>Plan</h4>
+                <span class="muted">Browse + edit</span>
+              </div>
+              <div class="mini-tag-row">
+                <span class="mini-tag active-tag">Confidence</span>
+                <span class="mini-tag">Explore</span>
+                <span class="mini-tag">Training</span>
+              </div>
+              <div class="mini-plan-list">
+                <div class="mini-plan mini-plan-active">Safe Early Morning</div>
+                <div class="mini-plan">Easy Nearby Loop</div>
+                <div class="mini-plan">City Landmark Run</div>
+              </div>
+              <div class="field tight">
+                <span>Distance</span>
+                <input type="text" value="6.0 miles" />
+              </div>
+              <div class="field tight">
+                <span>Surface</span>
+                <select>
+                  <option>Paved leaning</option>
+                </select>
+              </div>
+              <button class="btn btn-primary wide">Generate Routes</button>
+            </section>
+
+            <section class="planner-column map-column">
+              <div class="column-head">
+                <h4>Map</h4>
+                <span class="muted">Selected route highlighted</span>
+              </div>
+              <div class="map-surface">
+                <div class="map-route map-route-alt one"></div>
+                <div class="map-route map-route-alt two"></div>
+                <div class="map-route map-route-main"></div>
+                <div class="map-point start"></div>
+                <div class="map-point end"></div>
+              </div>
+            </section>
+
+            <section class="planner-column results-column">
+              <div class="column-head">
+                <h4>Results</h4>
+                <span class="muted">Compare + inspect</span>
+              </div>
+              <article class="mini-route-card selected">
+                <div class="mini-route-head">
+                  <span class="recommendation">Recommended</span>
+                  <span>Route A</span>
+                </div>
+                <p>6.2 mi · 44 min · 420 ft</p>
+              </article>
+              <article class="mini-route-card">
+                <div class="mini-route-head">
+                  <span class="muted">Alternative</span>
+                  <span>Route B</span>
+                </div>
+                <p>5.8 mi · 41 min · 380 ft</p>
+              </article>
+              <article class="mini-route-card">
+                <div class="mini-route-head">
+                  <span class="muted">Alternative</span>
+                  <span>Route C</span>
+                </div>
+                <p>6.4 mi · 46 min · 460 ft</p>
+              </article>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
