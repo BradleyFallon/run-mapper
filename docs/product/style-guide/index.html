@@ -25,6 +25,7 @@
           <a href="#colors">Colors</a>
           <a href="#type">Typography</a>
           <a href="#controls">Controls</a>
+          <a href="#icons">Icons</a>
           <a href="#cards">Cards</a>
           <a href="#planner">Planner Layout</a>
         </nav>
@@ -239,190 +240,278 @@
           </div>
         </section>
 
+        <section class="section" id="icons">
+          <div class="section-heading">
+            <p class="eyebrow">Icons</p>
+            <h3>Lucide catalog for RouteScout</h3>
+          </div>
+          <p class="section-support">
+            This is the shared web icon vocabulary for RouteScout. Use Lucide for the web app, SF
+            Symbols on iOS, and reserve custom RouteScout badges for collectible route features
+            where stock icons are too generic.
+          </p>
+          <div class="icon-catalog">
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="map-pinned"></div>
+              <div class="icon-copy">
+                <h4>Start proximity</h4>
+                <p>Closer start, origin pin, start radius</p>
+                <span>SF: <code>mappin.and.ellipse</code></span>
+              </div>
+            </article>
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="route"></div>
+              <div class="icon-copy">
+                <h4>Route</h4>
+                <p>Generic route identity and path structure</p>
+                <span>SF: <code>point.topleft.down.curvedto.point.bottomright.up</code></span>
+              </div>
+            </article>
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="refresh-cw"></div>
+              <div class="icon-copy">
+                <h4>Loop</h4>
+                <p>Loop shape and repeatable route form</p>
+                <span>SF: <code>arrow.trianglehead.clockwise</code></span>
+              </div>
+            </article>
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="navigation"></div>
+              <div class="icon-copy">
+                <h4>Simple navigation</h4>
+                <p>Clarity, directness, and legibility</p>
+                <span>SF: <code>location.north.line</code></span>
+              </div>
+            </article>
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="ruler"></div>
+              <div class="icon-copy">
+                <h4>Distance accuracy</h4>
+                <p>Distance precision and route target fit</p>
+                <span>SF: <code>ruler</code></span>
+              </div>
+            </article>
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="timer"></div>
+              <div class="icon-copy">
+                <h4>Duration</h4>
+                <p>Estimated time and elapsed route feel</p>
+                <span>SF: <code>timer</code></span>
+              </div>
+            </article>
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="gauge"></div>
+              <div class="icon-copy">
+                <h4>Pace / efficiency</h4>
+                <p>Optional pace and effort metric</p>
+                <span>SF: <code>gauge</code></span>
+              </div>
+            </article>
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="mountain"></div>
+              <div class="icon-copy">
+                <h4>Elevation profile</h4>
+                <p>Hills, climbing sets, and workout terrain</p>
+                <span>SF: <code>mountain.2</code></span>
+              </div>
+            </article>
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="trees"></div>
+              <div class="icon-copy">
+                <h4>Nature / trail</h4>
+                <p>Park access, green corridors, trail character</p>
+                <span>SF: <code>tree</code> / <code>figure.hiking</code></span>
+              </div>
+            </article>
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="building-2"></div>
+              <div class="icon-copy">
+                <h4>Landmarks</h4>
+                <p>City anchors, destinations, and urban identity</p>
+                <span>SF: <code>building.columns</code></span>
+              </div>
+            </article>
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="shield-check"></div>
+              <div class="icon-copy">
+                <h4>Lighting and confidence</h4>
+                <p>Trust-oriented routes and safer-feeling runs</p>
+                <span>SF: <code>checkmark.shield</code></span>
+              </div>
+            </article>
+            <article class="icon-card">
+              <div class="icon-symbol" data-lucide="volume-x"></div>
+              <div class="icon-copy">
+                <h4>Quiet surroundings</h4>
+                <p>Lower-noise environments and calmer route feel</p>
+                <span>SF: <code>speaker.slash</code></span>
+              </div>
+            </article>
+          </div>
+        </section>
+
         <section class="section" id="cards">
           <div class="section-heading">
             <p class="eyebrow">Cards</p>
-            <h3>Plan art follows plan intent</h3>
+            <h3>Scout Specs and Routes use different card logic</h3>
           </div>
           <p class="section-support">
-            The top half of a plan card should summarize what that plan prioritizes most. Training
-            plans use data graphics, confidence plans use navigation clarity graphics, and explore
-            plans use landmark-led imagery.
+            Scout Specs are plan cards. They should focus on priorities, parameters, and defaults.
+            Route Cards are collectible-feeling outputs. They should feel more like objects, with
+            route-specific stats, features, and stronger identity.
           </p>
-          <div class="component-grid card-showcase">
-            <article class="plan-card trading-card playing-card">
-              <div class="card-topline">
-                <span class="card-kicker">Confidence Plan</span>
+          <div class="card-section-heading">
+            <p class="eyebrow">Scout Specs</p>
+            <h4>Parameter-first plan cards</h4>
+          </div>
+          <div class="component-grid spec-showcase">
+            <article class="scout-spec-card">
+              <div class="spec-topline">
+                <span class="card-kicker">Confidence</span>
                 <span class="card-code">PLN-01</span>
               </div>
-              <div class="card-titlebar">
+              <div class="spec-head">
                 <div>
-                  <p class="card-subtitle">Starter Plan</p>
+                  <p class="card-subtitle">Scout Spec</p>
                   <h4>Safe Early Morning</h4>
                 </div>
-                <span class="card-badge">A</span>
+                <span class="spec-status">Core</span>
               </div>
-              <div class="card-art card-art-navigation">
-                <div class="nav-zone"></div>
-                <div class="nav-loop"></div>
-                <div class="nav-path"></div>
-                <span class="nav-node nav-node-start"></span>
-                <span class="nav-node nav-node-mid"></span>
-                <span class="nav-node nav-node-end"></span>
-                <div class="card-art-overlay">
-                  <span class="card-art-label">Lighting + clarity</span>
+              <div class="spec-priority-stack">
+                <div class="spec-priority spec-priority-primary">
+                  <span class="spec-priority-label">Top priority</span>
+                  <strong>Lighting and confidence</strong>
+                </div>
+                <div class="spec-priority">
+                  <span class="spec-priority-label">Secondary</span>
+                  <strong>Simple navigation</strong>
                 </div>
               </div>
-              <div class="card-type-line">
-                <span class="card-type">Route Confidence</span>
-                <span class="card-rarity">Starter</span>
+              <div class="spec-grid">
+                <div class="spec-item">
+                  <span class="spec-item-label">Shape</span>
+                  <strong>Loop</strong>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-item-label">Surface</span>
+                  <strong>Paved leaning</strong>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-item-label">Terrain</span>
+                  <strong>Flatter</strong>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-item-label">Start radius</span>
+                  <strong>Small</strong>
+                </div>
               </div>
-              <div class="card-bottom-panel">
-                <p class="card-flavor">
-                  Reliable, close, flatter, and easier to follow. A calm default for unfamiliar
-                  places.
-                </p>
-                <div class="card-divider"></div>
-                <div class="card-stat-strip">
-                  <div class="card-stat">
-                    <span class="card-stat-label">Shape</span>
-                    <strong>Loop</strong>
-                  </div>
-                  <div class="card-stat">
-                    <span class="card-stat-label">Surface</span>
-                    <strong>Paved</strong>
-                  </div>
-                  <div class="card-stat">
-                    <span class="card-stat-label">Feel</span>
-                    <strong>Simple</strong>
-                  </div>
-                </div>
-                <div class="plan-meta">
-                  <span>Closer start</span>
-                  <span>Flatter bias</span>
-                  <span>Low friction</span>
-                </div>
+              <div class="spec-support">
+                <span>Closer start</span>
+                <span>Low friction</span>
+                <span>Paved surface</span>
               </div>
             </article>
 
-            <article class="plan-card trading-card playing-card">
-              <div class="card-topline">
-                <span class="card-kicker">Training Plan</span>
+            <article class="scout-spec-card">
+              <div class="spec-topline">
+                <span class="card-kicker">Training</span>
                 <span class="card-code">PLN-04</span>
               </div>
-              <div class="card-titlebar">
+              <div class="spec-head">
                 <div>
-                  <p class="card-subtitle">Starter Plan</p>
+                  <p class="card-subtitle">Scout Spec</p>
                   <h4>Race Prep Hills</h4>
                 </div>
-                <span class="card-badge">T</span>
+                <span class="spec-status">Core</span>
               </div>
-              <div class="card-art card-art-elevation">
-                <div class="chart-grid"></div>
-                <svg class="elevation-chart" viewBox="0 0 260 160" aria-hidden="true">
-                  <polyline
-                    points="8,132 42,120 78,90 112,72 150,84 188,48 224,58 252,26"
-                  ></polyline>
-                </svg>
-                <div class="elevation-markers">
-                  <span>820 ft gain</span>
-                  <span>steady climb set</span>
+              <div class="spec-priority-stack">
+                <div class="spec-priority spec-priority-primary">
+                  <span class="spec-priority-label">Top priority</span>
+                  <strong>Elevation profile</strong>
                 </div>
-                <div class="card-art-overlay">
-                  <span class="card-art-label">Elevation profile</span>
+                <div class="spec-priority">
+                  <span class="spec-priority-label">Secondary</span>
+                  <strong>Distance accuracy</strong>
                 </div>
               </div>
-              <div class="card-type-line">
-                <span class="card-type">Technical Training</span>
-                <span class="card-rarity">Starter</span>
+              <div class="spec-grid">
+                <div class="spec-item">
+                  <span class="spec-item-label">Shape</span>
+                  <strong>Loop</strong>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-item-label">Surface</span>
+                  <strong>Consistent paved</strong>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-item-label">Terrain</span>
+                  <strong>Hillier</strong>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-item-label">Tolerance</span>
+                  <strong>Tighter</strong>
+                </div>
               </div>
-              <div class="card-bottom-panel">
-                <p class="card-flavor">
-                  Precise distance, reliable pavement, and a repeatable climbing pattern for race
-                  prep.
-                </p>
-                <div class="card-divider"></div>
-                <div class="card-stat-strip">
-                  <div class="card-stat">
-                    <span class="card-stat-label">Surface</span>
-                    <strong>Consistent</strong>
-                  </div>
-                  <div class="card-stat">
-                    <span class="card-stat-label">Profile</span>
-                    <strong>Climbing set</strong>
-                  </div>
-                  <div class="card-stat">
-                    <span class="card-stat-label">Stops</span>
-                    <strong>Minimized</strong>
-                  </div>
-                </div>
-                <div class="plan-meta">
-                  <span>Distance precision</span>
-                  <span>Crosswalk avoidance</span>
-                  <span>Workout ready</span>
-                </div>
+              <div class="spec-support">
+                <span>Low interruptions</span>
+                <span>Paved surface</span>
+                <span>Workout ready</span>
               </div>
             </article>
 
-            <article class="plan-card trading-card playing-card">
-              <div class="card-topline">
-                <span class="card-kicker">Explore Plan</span>
+            <article class="scout-spec-card">
+              <div class="spec-topline">
+                <span class="card-kicker">Explore</span>
                 <span class="card-code">PLN-03</span>
               </div>
-              <div class="card-titlebar">
+              <div class="spec-head">
                 <div>
-                  <p class="card-subtitle">Starter Plan</p>
+                  <p class="card-subtitle">Scout Spec</p>
                   <h4>City Landmark Run</h4>
                 </div>
-                <span class="card-badge">E</span>
+                <span class="spec-status">Core</span>
               </div>
-              <div class="card-art card-art-landmark">
-                <div class="landmark-glow"></div>
-                <div class="landmark-skyline">
-                  <span class="skyline-block skyline-left"></span>
-                  <span class="skyline-block skyline-center"></span>
-                  <span class="skyline-block skyline-right"></span>
+              <div class="spec-priority-stack">
+                <div class="spec-priority spec-priority-primary">
+                  <span class="spec-priority-label">Top priority</span>
+                  <strong>Landmarks</strong>
                 </div>
-                <div class="landmark-caption">
-                  <strong>Riverfront clock tower</strong>
-                  <span>Iconic route anchor</span>
-                </div>
-                <div class="card-art-overlay">
-                  <span class="card-art-label">Landmark-led route</span>
+                <div class="spec-priority">
+                  <span class="spec-priority-label">Secondary</span>
+                  <strong>Nature access</strong>
                 </div>
               </div>
-              <div class="card-type-line">
-                <span class="card-type">City Exploration</span>
-                <span class="card-rarity">Starter</span>
+              <div class="spec-grid">
+                <div class="spec-item">
+                  <span class="spec-item-label">Shape</span>
+                  <strong>Loop</strong>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-item-label">Surface</span>
+                  <strong>Mixed urban</strong>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-item-label">Terrain</span>
+                  <strong>Neutral</strong>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-item-label">Start radius</span>
+                  <strong>Moderate</strong>
+                </div>
               </div>
-              <div class="card-bottom-panel">
-                <p class="card-flavor">
-                  Built around the most memorable parts of the city, with route character leading
-                  over strict training metrics.
-                </p>
-                <div class="card-divider"></div>
-                <div class="card-stat-strip">
-                  <div class="card-stat">
-                    <span class="card-stat-label">Focus</span>
-                    <strong>Landmarks</strong>
-                  </div>
-                  <div class="card-stat">
-                    <span class="card-stat-label">Flow</span>
-                    <strong>Scenic loop</strong>
-                  </div>
-                  <div class="card-stat">
-                    <span class="card-stat-label">Vibe</span>
-                    <strong>Memorable</strong>
-                  </div>
-                </div>
-                <div class="plan-meta">
-                  <span>Photo worthy</span>
-                  <span>Neighborhood texture</span>
-                  <span>Destination first</span>
-                </div>
+              <div class="spec-support">
+                <span>Scenic bias</span>
+                <span>Destination first</span>
+                <span>Simple navigation</span>
               </div>
             </article>
+          </div>
 
+          <div class="card-section-heading route-section-heading">
+            <p class="eyebrow">Routes</p>
+            <h4>Collectible-feeling route cards</h4>
+          </div>
+          <div class="component-grid route-showcase">
             <article class="route-card route-card-selected trading-card playing-card">
               <div class="card-topline">
                 <span class="card-kicker">Selected Route</span>
@@ -449,6 +538,12 @@
                 <span class="card-rarity">Rank 1</span>
               </div>
               <div class="card-bottom-panel">
+                <div class="route-feature-icons">
+                  <span class="route-feature-icon">PV</span>
+                  <span class="route-feature-icon">LT</span>
+                  <span class="route-feature-icon">FL</span>
+                  <span class="route-feature-icon">PK</span>
+                </div>
                 <div class="route-metrics">
                   <div>
                     <p class="metric-large">6.2 mi</p>
@@ -565,5 +660,11 @@
         </section>
       </main>
     </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    </script>
   </body>
 </html>

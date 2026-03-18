@@ -42,9 +42,51 @@ The recommended pipeline is:
 3. collect route metadata and extras
 4. apply basic hard filters
 5. calculate normalized component scores
-6. weight those scores by plan and category
-7. rank candidates
-8. generate a short explanation for the recommended route
+6. apply category baseline weighting
+7. apply plan priority modifiers
+8. rank candidates
+9. generate a short explanation for the recommended route
+
+## Priority-Driven Model
+
+The scoring model should be understood as:
+- category defines the baseline weighting model
+- plan priorities define what matters most within that category
+
+That means category is not the only source of truth.
+
+RouteScout should rank routes using:
+1. shared component scores
+2. category baseline weights
+3. top-priority modifier
+4. secondary-priority modifier
+5. optional tertiary-priority tie-breaker
+
+This creates a clean relationship between:
+- what the user sees on the plan card
+- how the app ranks routes
+- how the app explains the recommendation
+
+## Priority Vocabulary To Scoring Mapping
+
+The named priorities from the plan system should map into score components like this:
+
+| Priority | Primary scoring effect |
+|---|---|
+| `Distance accuracy` | increase `distance fit` weight |
+| `Closer start` | increase `start convenience` weight |
+| `Simple navigation` | increase `route simplicity` weight |
+| `Paved surface` | increase `surface fit` with paved-leaning interpretation |
+| `Elevation profile` | increase `hill fit` and `training fit` weight |
+| `Landmarks` | increase `discovery fit` weight |
+| `Quiet surroundings` | increase `environmental fit` with quiet emphasis |
+| `Nature access` | increase `environmental fit` and `discovery fit` with green/scenic emphasis |
+| `Trail quality` | increase `trail suitability` and trail-leaning `surface fit` |
+| `Low interruptions` | increase `training fit` and `route simplicity` |
+| `Lighting and confidence` | increase `route simplicity`, `start convenience`, and confidence-leaning `environmental fit` |
+
+This mapping should stay product-facing.
+Implementation can remain more detailed underneath.
 
 ## Where ORS Helps Directly
 
@@ -226,6 +268,21 @@ The simplest MVP approach is:
 - category-level weighting changes
 - plan-level fine-tuning on top
 
+## Priority Modifier Rule
+
+For MVP, the simplest priority system is:
+- top priority = strongest modifier
+- secondary priority = medium modifier
+- tertiary priority = tie-breaker modifier
+
+Recommended relative impact:
+- top priority: strong boost
+- secondary priority: meaningful boost
+- tertiary priority: light boost
+
+The exact numeric values can evolve in implementation.
+The product rule is more important than the first exact formula.
+
 ## Recommended Category Weighting
 
 The weights below are product targets, not exact implementation requirements.
@@ -288,46 +345,80 @@ Use when adventure matters, but with guardrails.
 
 ## Plan-Level Modifiers
 
-Within a category, the selected plan should shift the scoring emphasis.
+Within a category, the selected plan should shift the scoring emphasis according to its named
+priorities.
 
 Examples:
 
 ### Safe Early Morning
 
-Should increase emphasis on:
-- route simplicity
-- start convenience
-- flatter hill fit
-- paved surface fit
+Category baseline:
+- `Confidence`
+
+Priority-driven emphasis:
+- top priority `Lighting and confidence` increases route simplicity, start convenience, and
+  confidence-leaning environmental fit
+- secondary priority `Simple navigation` increases route simplicity further
+- tertiary priority `Paved surface` favors more reliable solid surfaces
+
+Net effect:
+- easy-to-follow routes should outrank merely scenic routes
+- flatter, paved, and confidence-friendly routes should win ties
 
 ### Easy Nearby Loop
 
-Should increase emphasis on:
-- start convenience
-- simplicity
-- reasonable all-around fit
+Category baseline:
+- `Confidence`
+
+Priority-driven emphasis:
+- top priority `Closer start` increases start convenience heavily
+- secondary priority `Distance accuracy` keeps the route close to the requested mileage
+- tertiary priority `Simple navigation` breaks ties toward simpler loops
+
+Net effect:
+- nearby usable loops should outrank more ambitious but less convenient ones
 
 ### City Landmark Run
 
-Should increase emphasis on:
-- discovery fit
-- environmental fit
-- route cohesion
+Category baseline:
+- `Explore`
+
+Priority-driven emphasis:
+- top priority `Landmarks` increases discovery fit strongly
+- secondary priority `Nature access` raises green/scenic environmental fit
+- tertiary priority `Simple navigation` prevents the result from becoming chaotic
+
+Net effect:
+- memorable routes should beat merely efficient ones
+- scenic routes should still stay runnable and legible
 
 ### Race Prep Hills
 
-Should increase emphasis on:
-- distance fit
-- hill fit
-- training fit
-- paved consistency
+Category baseline:
+- `Training`
+
+Priority-driven emphasis:
+- top priority `Elevation profile` increases hill fit and training fit
+- secondary priority `Distance accuracy` reinforces technical precision
+- tertiary priority `Paved surface` pushes the route toward more consistent footing
+
+Net effect:
+- workout usefulness should outrank scenic quality
+- routes that match the desired climbing pattern should beat prettier but less specific options
 
 ### Trail Confidence Loop
 
-Should increase emphasis on:
-- trail suitability
-- hill tolerance fit
-- route clarity
+Category baseline:
+- `Trail`
+
+Priority-driven emphasis:
+- top priority `Trail quality` increases trail suitability strongly
+- secondary priority `Simple navigation` keeps trail complexity manageable
+- tertiary priority `Nature access` favors stronger outdoor character
+
+Net effect:
+- trail-forward routes should win
+- confusing or overly technical trail options should be downranked
 
 ## Deterministic Versus LLM-Assisted Logic
 
@@ -357,22 +448,30 @@ The product should return:
 - a small number of alternatives
 - a visible score breakdown or reason breakdown
 
-The explanation should map back to the score components.
+The explanation should map back to:
+- the plan's top priority
+- the plan's secondary priority
+- the strongest score-component wins
 
 Good recommendation language:
 - "Closest to your target distance"
 - "Flatter and easier to follow"
 - "More paved than the alternatives"
 - "Stronger hill match for your workout"
+- "Better fit for your top priority: landmarks"
+- "Supports your plan's focus on lighting and confidence"
 
 ## MVP Explanation Model
 
-For MVP, explanations can be generated from the top 2 to 3 strongest component wins.
+For MVP, explanations can be generated from:
+- the top priority match
+- the secondary priority match
+- one additional supporting component win if helpful
 
 Example:
-- best distance match
-- flatter than alternatives
-- more paved and simpler to follow
+- strongest match for elevation profile
+- closest to target distance
+- more paved than the alternatives
 
 This is enough to make the recommendation feel defensible.
 
@@ -405,6 +504,7 @@ Most notable gaps between runtime and product target:
 - no explicit training-fit dimension yet
 - no explicit trail-suitability dimension yet
 - no category-specific weighting in the current implementation
+- no explicit priority-driven weighting in the current implementation
 
 ## Recommended MVP Implementation Strategy
 
@@ -412,9 +512,10 @@ Implementation order:
 
 1. keep the current shared deterministic baseline
 2. add category-level weighting
-3. add route-simplicity heuristics
-4. add lightweight discovery/training/trail secondary dimensions
-5. improve explanation generation from score breakdowns
+3. add named priority mapping
+4. add route-simplicity heuristics
+5. add lightweight discovery/training/trail secondary dimensions
+6. improve explanation generation from score breakdowns and plan priorities
 
 This keeps the model simple enough to ship while aligning it more closely with the product design.
 

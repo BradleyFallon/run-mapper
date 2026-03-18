@@ -120,6 +120,21 @@ Avoid mixing these with less precise alternatives like:
 - `setup`
 - `spec`
 
+### Scout Spec
+
+`Scout Spec` should be treated as a branded presentation format for a plan card in the UI.
+
+It is not a replacement for the core term `plan`.
+
+Use it when referring to:
+- the visual card treatment for a plan
+- a compact plan summary card in the planner
+
+Do not use it when the product really means:
+- the underlying saved plan object
+- APIs
+- technical data model language
+
 ## Naming Guidance
 
 Use `category` when referring to:

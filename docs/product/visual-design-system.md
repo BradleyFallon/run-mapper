@@ -387,17 +387,42 @@ Selected:
 - accent border
 - brighter text or icon
 
+### Scout Spec Cards
+
+Scout Specs are the card-format presentation of plans.
+
+They should feel like:
+- structured
+- technical
+- parameter-led
+- calm and readable
+
+Scout Specs should not use a hero image.
+
+They should focus on:
+- plan name
+- category
+- top priority
+- secondary priority
+- supporting parameters
+- route shape and default constraints
+
+Scout Specs should read like a clear planning brief, not a collectible object.
+
 ### Route Cards
 
 Route cards should feel like:
-- premium editorial cards
-- compact but information-rich
+- premium collectible cards
+- specific enough to feel worth saving
+- richer and more object-like than Scout Specs
 
 Each route card should support:
 - route rank
 - distance
 - duration
 - elevation
+- feature icons
+- route-specific traits
 - short explanation
 - selection state
 
@@ -406,24 +431,14 @@ Selected cards should gain:
 - slightly brighter surface
 - clearer accent treatment
 
-### Plan Card Art System
+Route cards may use a top-half visual area.
+That area can include:
+- route overview graphics
+- route-specific landmark imagery
+- terrain cues
+- other route identity signals
 
-Plan cards should use the top half of the card as a visual summary of what the plan prioritizes.
-
-The art zone should not be generic decoration.
-It should communicate plan intent at a glance.
-
-Default art treatments by category:
-- `Confidence`: navigation clarity, loop simplicity, lighting emphasis, or route confidence signals
-- `Training`: elevation profile, terrain consistency, or other technical route graphics
-- `Explore`: landmark-led imagery anchored around the most iconic route highlight
-- `Trail`: topography, trail texture, or terrain suitability signals
-
-Rules:
-- category determines the default art system
-- the specific plan determines the content inside that system
-- keep the framing consistent even when the art content changes
-- prefer data, route, and place signals over decorative illustration
+The route card is where the more collectible trading-card language belongs.
 
 ### Maps
 

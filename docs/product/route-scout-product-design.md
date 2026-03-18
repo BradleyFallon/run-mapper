@@ -27,11 +27,21 @@ The app is for runners who:
 - want a route that fits the moment, not just the mileage
 
 At a high level, RouteScout is not only a route generator. It is a route scouting and route
-selection tool.
+selection tool that creates a custom route for the runner instead of mainly asking them to browse
+what other people already uploaded.
 
 ## Core Value Proposition
 
 RouteScout gives runners confidence before they run.
+
+Its core product magic is:
+- "I am here"
+- "I have this much time"
+- "I want this kind of run"
+- "What should I do?"
+
+RouteScout should answer that question as if an experienced runner had spent time studying the map,
+weighing tradeoffs, and scouting the best option for that moment.
 
 That confidence can come from:
 - safety and predictability
@@ -49,6 +59,26 @@ Before the user leaves the house or hotel, they should be able to answer:
 - Will it hit my distance and terrain targets?
 - Will I enjoy what I see along the way?
 - Can I trust it enough to just go run it?
+
+Just as important, the user should feel:
+- this route was made for me
+- this is better than trying to figure it out myself on a map
+- this is better than settling for a route somebody else happened to share
+
+## What Makes RouteScout Different
+
+RouteScout should be positioned as a custom running route planner, not primarily as a route
+library.
+
+That means:
+- the main value is generating the right route for this runner, here, now
+- shared routes can exist, but they are secondary
+- the product should feel like it scouts the route for the user
+
+The core contrast:
+- generic maps help people get from A to B
+- route-sharing products show what somebody else ran
+- RouteScout decides what route this runner should do next
 
 ## Primary Use Cases
 

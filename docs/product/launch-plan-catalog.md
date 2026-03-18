@@ -20,6 +20,8 @@ Each launch plan should define:
 - name
 - category
 - intended user need
+- top priority
+- secondary priority
 - default route shape
 - default planning biases
 - editable basic controls
@@ -39,13 +41,13 @@ This is enough range to support the main personas without overwhelming the first
 
 ## Summary Table
 
-| Plan | Category | Primary user | Core promise |
-|---|---|---|---|
-| `Safe Early Morning` | `Confidence` | Vee | Reliable, close, flatter, easy-to-follow route |
-| `Easy Nearby Loop` | `Confidence` | general | Simple nearby default for low-friction route generation |
-| `City Landmark Run` | `Explore` | Ace | City discovery route built around memorable highlights |
-| `Race Prep Hills` | `Training` | Flo | Technically useful route with stronger hill and surface intent |
-| `Trail Confidence Loop` | `Trail` | Sam | Trail-forward route with guardrails on difficulty and confusion |
+| Plan | Category | Primary user | Top priority | Secondary priority | Core promise |
+|---|---|---|---|---|---|
+| `Safe Early Morning` | `Confidence` | Vee | `Lighting and confidence` | `Simple navigation` | Reliable, close, flatter, easy-to-follow route |
+| `Easy Nearby Loop` | `Confidence` | general | `Closer start` | `Distance accuracy` | Simple nearby default for low-friction route generation |
+| `City Landmark Run` | `Explore` | Ace | `Landmarks` | `Nature access` | City discovery route built around memorable highlights |
+| `Race Prep Hills` | `Training` | Flo | `Elevation profile` | `Distance accuracy` | Technically useful route with stronger hill and surface intent |
+| `Trail Confidence Loop` | `Trail` | Sam | `Trail quality` | `Simple navigation` | Trail-forward route with guardrails on difficulty and confusion |
 
 ## Shared MVP Defaults
 
@@ -70,6 +72,11 @@ Shared advanced controls:
 - stronger training bias
 - more explicit trail tolerance
 
+Shared priority rule:
+- every starter plan must define one `top priority`
+- every starter plan should define one `secondary priority`
+- a `tertiary priority` may exist in advanced settings as a tie-breaker
+
 ## Plan 1: Safe Early Morning
 
 ### Category
@@ -89,6 +96,12 @@ Find a route that feels easy to trust:
 - flatter
 - paved leaning
 - simple to follow
+
+### Priority Ranking
+
+- top priority: `Lighting and confidence`
+- secondary priority: `Simple navigation`
+- tertiary priority: `Paved surface`
 
 ### Default Biases
 
@@ -135,6 +148,12 @@ This should be the most approachable plan for first-time users.
 
 Give me a solid nearby loop without a lot of setup.
 
+### Priority Ranking
+
+- top priority: `Closer start`
+- secondary priority: `Distance accuracy`
+- tertiary priority: `Simple navigation`
+
 ### Default Biases
 
 - route shape: `loop`
@@ -179,6 +198,12 @@ specific use case.
 ### Core Promise
 
 Build a runnable city route that feels worth doing because of what it passes through.
+
+### Priority Ranking
+
+- top priority: `Landmarks`
+- secondary priority: `Nature access`
+- tertiary priority: `Simple navigation`
 
 ### Default Biases
 
@@ -225,6 +250,12 @@ This plan should bias for places worth seeing without becoming chaotic or overly
 ### Core Promise
 
 Build a route that works as a training tool, not just a pretty suggestion.
+
+### Priority Ranking
+
+- top priority: `Elevation profile`
+- secondary priority: `Distance accuracy`
+- tertiary priority: `Paved surface`
 
 ### Default Biases
 
@@ -278,6 +309,12 @@ Recommended likely saved variants:
 
 Find a trail-forward route that feels interesting but still manageable and navigable.
 
+### Priority Ranking
+
+- top priority: `Trail quality`
+- secondary priority: `Simple navigation`
+- tertiary priority: `Nature access`
+
 ### Default Biases
 
 - route shape: `loop`
@@ -313,6 +350,11 @@ This plan should make trail discovery feel inviting, not reckless.
 
 The category should influence how plans are displayed and filtered, but the plan itself remains the
 main unit the user selects.
+
+Plan cards should surface:
+- top priority
+- secondary priority
+- one supporting characteristic from the plan defaults
 
 ### Confidence
 

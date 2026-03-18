@@ -87,6 +87,7 @@ def build_preferences(config: dict) -> LoopPreferenceProfile:
 
 def format_candidate(index: int, candidate) -> str:
     route = candidate.route
+    badges = ", ".join(badge.code for badge in (candidate.badges or [])) or "none"
     return "\n".join(
         [
             f"Candidate {index + 1}",
@@ -95,6 +96,7 @@ def format_candidate(index: int, candidate) -> str:
             f"  Duration: {route.duration_s / 60.0:.1f} min",
             f"  Climb: {meters_to_feet(route.ascent_m):.0f} ft",
             f"  Start offset: {candidate.start_offset_m / 1609.344:.2f} mi",
+            f"  Badges: {badges}",
             "  Breakdown: "
             + ", ".join(
                 f"{name}={value:.2f}" for name, value in candidate.score_breakdown.items()
@@ -184,6 +186,10 @@ def main() -> int:
                 {
                     "score": candidate.score,
                     "score_breakdown": candidate.score_breakdown,
+                    "badges": [
+                        {"code": badge.code, "label": badge.label, "strength": badge.strength}
+                        for badge in (candidate.badges or [])
+                    ],
                     "start_coord": candidate.start_coord,
                     "start_offset_miles": candidate.start_offset_m / 1609.344,
                     "summary": {

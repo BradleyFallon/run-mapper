@@ -42,6 +42,8 @@ These docs cover concrete product-model choices.
 
 - [route-plans-and-tuning.md](./route-plans-and-tuning.md)
   How starter plans, saved plans, and advanced tuning should work.
+- [plan-parameter-model.md](./plan-parameter-model.md)
+  Parameter families, priority ranking, MVP guardrails, and what plan cards should show.
 
 ## Brand And Visuals
 
@@ -51,6 +53,14 @@ These docs define how the product should feel and look.
   Brand direction, market fit, premium positioning, and compatibility goals.
 - [visual-design-system.md](./visual-design-system.md)
   Colors, typography, spacing, surfaces, and UI rules.
+- [icon-vocabulary.md](./icon-vocabulary.md)
+  Shared icon meanings, SF Symbols and Lucide counterparts, and RouteScout badge guidance.
+- [route-card-feature-badge-spec.md](./route-card-feature-badge-spec.md)
+  Route badge meanings, trigger rules, ordering, and card-level badge limits.
+- [route-badge-trigger-matrix.md](./route-badge-trigger-matrix.md)
+  Badge derivation guidance tying Route Card badges to route traits, scores, and metadata.
+- [runtime-badge-derivation.md](./runtime-badge-derivation.md)
+  Runtime-oriented guidance for attaching Route Card badges inside `run_router/service.py`.
 - [style-guide/index.html](./style-guide/index.html)
   Browser-viewable HTML/CSS style guide for inspecting tokens, typography, components, and planner aesthetics.
 
@@ -102,6 +112,8 @@ If you are continuing product design work, use this order:
 
 - [launch-plan-catalog.md](./launch-plan-catalog.md)
   Starter plans for MVP, including categories, defaults, and basic versus advanced controls.
+- [plan-parameter-model.md](./plan-parameter-model.md)
+  Shared plan parameter structure, top-priority rules, and plan card summary guidance.
 
 ## Scoring
 

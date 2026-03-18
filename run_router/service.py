@@ -57,12 +57,41 @@ class LoopCandidate:
     route: RouteResult
     score: float
     score_breakdown: dict[str, float]
+    traits: "RouteTraits | None" = None
+    badges: list["RouteBadge"] | None = None
 
 
 @dataclass
 class LlmPreferenceHint:
     preferences: LoopPreferenceProfile
     summary: str
+
+
+@dataclass
+class RouteTraits:
+    paved_ratio: float | None
+    trail_ratio: float | None
+    average_noise: float | None
+    average_green: float | None
+    ascent_ft_per_mi: float
+    distance_fit: float
+    start_convenience: float
+    surface_fit: float
+    quiet_fit: float
+    green_fit: float
+    hill_fit: float
+    route_simplicity: float
+    discovery_fit: float
+    training_fit: float
+    trail_suitability: float
+    is_loop: bool
+
+
+@dataclass
+class RouteBadge:
+    code: str
+    label: str
+    strength: float
 
 
 def parse_coord(text: str) -> list[float]:
@@ -170,6 +199,18 @@ def geodesic_offset(origin: list[float], distance_m: float, bearing_deg: float) 
     lon = ((math.degrees(lon2) + 540) % 360) - 180
     lat = math.degrees(lat2)
     return validate_lon_lat(lon, lat)
+
+
+def haversine_distance_m(coord_a: list[float], coord_b: list[float]) -> float:
+    lon1, lat1 = math.radians(coord_a[0]), math.radians(coord_a[1])
+    lon2, lat2 = math.radians(coord_b[0]), math.radians(coord_b[1])
+    delta_lon = lon2 - lon1
+    delta_lat = lat2 - lat1
+    a = (
+        math.sin(delta_lat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(delta_lon / 2) ** 2
+    )
+    return 2 * EARTH_RADIUS_M * math.asin(math.sqrt(a))
 
 
 def generate_candidate_starts(center: list[float], radius_m: float) -> list[tuple[list[float], float]]:
@@ -384,6 +425,183 @@ def score_loop_candidate(
     return score, score_breakdown
 
 
+def derive_route_traits(
+    *,
+    route: RouteResult,
+    score_breakdown: dict[str, float],
+    start_offset_m: float,
+    start_radius_m: float,
+) -> RouteTraits:
+    extras = route.extras
+    paved_ratio = ratio_for_values(extras, "surface", PAVED_SURFACE_IDS)
+    trail_ratio = ratio_for_values(extras, "waytype", TRAIL_WAYTYPE_IDS)
+    average_noise = average_extra_score(extras, "noise")
+    average_green = average_extra_score(extras, "green")
+
+    ascent_ft_per_mi = 0.0
+    if route.distance_mi > 0:
+        ascent_ft_per_mi = meters_to_feet(route.ascent_m) / route.distance_mi
+
+    surface_fit = score_breakdown.get("pavement", 0.5)
+    quiet_fit = score_breakdown.get("quiet", 0.5)
+    green_fit = score_breakdown.get("green", 0.5)
+    hill_fit = score_breakdown.get("hills", 0.5)
+    distance_fit = score_breakdown.get("distance", 0.5)
+    start_convenience = score_breakdown.get("start", 0.5)
+
+    route_simplicity = clamp((start_convenience * 0.55) + ((1 - trail_ratio) if trail_ratio is not None else 0.5) * 0.45)
+    discovery_fit = clamp((green_fit * 0.65) + (quiet_fit * 0.35))
+    training_fit = clamp((distance_fit * 0.4) + (hill_fit * 0.35) + (surface_fit * 0.25))
+    trail_suitability = clamp((((trail_ratio or 0.0) * 0.55) + ((1 - surface_fit) * 0.25) + (hill_fit * 0.2)))
+
+    coords = route.route_feature.get("geometry", {}).get("coordinates", [])
+    is_loop = False
+    if len(coords) >= 2:
+        is_loop = haversine_distance_m(coords[0], coords[-1]) <= max(150.0, start_radius_m * 0.5)
+
+    return RouteTraits(
+        paved_ratio=paved_ratio,
+        trail_ratio=trail_ratio,
+        average_noise=average_noise,
+        average_green=average_green,
+        ascent_ft_per_mi=ascent_ft_per_mi,
+        distance_fit=distance_fit,
+        start_convenience=start_convenience,
+        surface_fit=surface_fit,
+        quiet_fit=quiet_fit,
+        green_fit=green_fit,
+        hill_fit=hill_fit,
+        route_simplicity=route_simplicity,
+        discovery_fit=discovery_fit,
+        training_fit=training_fit,
+        trail_suitability=trail_suitability,
+        is_loop=is_loop,
+    )
+
+
+def qualifies_nearby(traits: RouteTraits, *, threshold: float = 0.8) -> bool:
+    return traits.start_convenience >= threshold
+
+
+def qualifies_paved(
+    traits: RouteTraits,
+    *,
+    paved_ratio_threshold: float = 0.65,
+    surface_fit_threshold: float = 0.62,
+) -> bool:
+    return (
+        traits.paved_ratio is not None
+        and traits.paved_ratio >= paved_ratio_threshold
+        and traits.surface_fit >= surface_fit_threshold
+    )
+
+
+def qualifies_trail(
+    traits: RouteTraits,
+    *,
+    trail_ratio_threshold: float = 0.4,
+    trail_suitability_threshold: float = 0.56,
+) -> bool:
+    return (
+        traits.trail_ratio is not None
+        and traits.trail_ratio >= trail_ratio_threshold
+        and traits.trail_suitability >= trail_suitability_threshold
+    )
+
+
+def qualifies_flat(
+    traits: RouteTraits,
+    *,
+    climb_ft_per_mi_threshold: float = 90.0,
+    hill_fit_floor: float = 0.45,
+) -> bool:
+    return traits.ascent_ft_per_mi <= climb_ft_per_mi_threshold and traits.hill_fit >= hill_fit_floor
+
+
+def qualifies_hills(
+    traits: RouteTraits,
+    *,
+    climb_ft_per_mi_threshold: float = 180.0,
+    hill_fit_floor: float = 0.58,
+) -> bool:
+    return traits.ascent_ft_per_mi >= climb_ft_per_mi_threshold and traits.hill_fit >= hill_fit_floor
+
+
+def qualifies_quiet(traits: RouteTraits, *, quiet_threshold: float = 0.72) -> bool:
+    return traits.quiet_fit >= quiet_threshold
+
+
+def qualifies_loop(traits: RouteTraits, *, simplicity_floor: float = 0.5) -> bool:
+    return traits.is_loop and traits.route_simplicity >= simplicity_floor
+
+
+def derive_route_badges(traits: RouteTraits) -> list[RouteBadge]:
+    badges: list[RouteBadge] = []
+
+    if qualifies_loop(traits):
+        badges.append(RouteBadge(code="LP", label="Loop", strength=traits.route_simplicity))
+    if qualifies_nearby(traits):
+        badges.append(RouteBadge(code="NX", label="Nearby", strength=traits.start_convenience))
+    if qualifies_paved(traits):
+        badges.append(
+            RouteBadge(
+                code="PV",
+                label="Paved",
+                strength=((traits.paved_ratio or 0.0) * 0.65) + (traits.surface_fit * 0.35),
+            )
+        )
+    if qualifies_trail(traits):
+        badges.append(
+            RouteBadge(
+                code="TR",
+                label="Trail",
+                strength=((traits.trail_ratio or 0.0) * 0.65) + (traits.trail_suitability * 0.35),
+            )
+        )
+    if qualifies_flat(traits):
+        flat_strength = clamp(1 - (traits.ascent_ft_per_mi / 180.0))
+        badges.append(RouteBadge(code="FL", label="Flat", strength=flat_strength))
+    if qualifies_hills(traits):
+        hill_strength = clamp((traits.ascent_ft_per_mi - 120.0) / 220.0)
+        badges.append(RouteBadge(code="HL", label="Hills", strength=hill_strength))
+    if qualifies_quiet(traits):
+        badges.append(RouteBadge(code="QT", label="Quiet", strength=traits.quiet_fit))
+
+    by_code = {badge.code: badge for badge in badges}
+    if "FL" in by_code and "HL" in by_code:
+        weaker = "FL" if by_code["FL"].strength < by_code["HL"].strength else "HL"
+        badges = [badge for badge in badges if badge.code != weaker]
+        by_code = {badge.code: badge for badge in badges}
+    if "PV" in by_code and "TR" in by_code:
+        weaker = "PV" if by_code["PV"].strength < by_code["TR"].strength else "TR"
+        badges = [badge for badge in badges if badge.code != weaker]
+
+    family_order = {
+        "LP": 0,
+        "NX": 0,
+        "PV": 1,
+        "TR": 1,
+        "FL": 1,
+        "HL": 1,
+        "QT": 2,
+    }
+    badges.sort(key=lambda badge: (-badge.strength, family_order.get(badge.code, 9), badge.code))
+
+    selected: list[RouteBadge] = []
+    used_families: set[int] = set()
+    for badge in badges:
+        family = family_order.get(badge.code, 9)
+        if len(selected) >= 4:
+            break
+        if family in used_families and len(selected) >= 3:
+            continue
+        selected.append(badge)
+        used_families.add(family)
+
+    selected.sort(key=lambda badge: (family_order.get(badge.code, 9), -badge.strength, badge.code))
+    return selected[:4]
+
+
 def fetch_directions_geojson(
     *,
     api_key: str,
@@ -547,6 +765,13 @@ def build_loop_candidates(
                 max_start_offset_m=start_radius_m,
                 preferences=preferences,
             )
+            traits = derive_route_traits(
+                route=route,
+                score_breakdown=score_breakdown,
+                start_offset_m=start_offset_m,
+                start_radius_m=start_radius_m,
+            )
+            badges = derive_route_badges(traits)
             candidates.append(
                 LoopCandidate(
                     start_coord=start_coord,
@@ -555,6 +780,8 @@ def build_loop_candidates(
                     route=route,
                     score=score,
                     score_breakdown=score_breakdown,
+                    traits=traits,
+                    badges=badges,
                 )
             )
 
