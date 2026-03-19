@@ -193,6 +193,15 @@
         line-height: 1.5;
       }
 
+      .summary-copy {
+        margin-top: 8px;
+        line-height: 1.5;
+      }
+
+      .summary-copy strong {
+        color: var(--text);
+      }
+
       .badge-row {
         display: flex;
         flex-wrap: wrap;
@@ -511,6 +520,15 @@
           const breakdown = Object.entries(candidate.score_breakdown)
             .map(([name, value]) => `${name}=${value.toFixed(2)}`)
             .join(", ");
+          const summary = candidate.summary_text;
+          const summaryBlock = summary
+            ? `
+              <div class="summary-copy">
+                <strong>${summary.headline}</strong><br />
+                <span class="meta">Why it won: ${summary.top_reasons.join(", ") || "overall fit"}</span>
+              </div>
+            `
+            : "";
           card.innerHTML = `
             <div class="candidate-head">
               <strong>Candidate ${index + 1}</strong>
@@ -518,6 +536,7 @@
             </div>
             <div class="meta">${candidate.summary.distance_miles.toFixed(2)} mi · ${candidate.summary.duration_minutes.toFixed(1)} min · ${candidate.summary.ascent_feet.toFixed(0)} ft climb · start ${candidate.start_offset_miles.toFixed(2)} mi away</div>
             <div class="badge-row">${badges}</div>
+            ${summaryBlock}
             <div class="breakdown">${breakdown}</div>
           `;
           card.addEventListener("click", () => focusCandidate(index));

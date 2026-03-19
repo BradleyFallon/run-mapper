@@ -54,6 +54,16 @@ def load_config(path: str) -> dict:
 def format_candidate(index: int, candidate) -> str:
     route = candidate.route
     badges = ", ".join(badge.code for badge in (candidate.badges or [])) or "none"
+    summary = candidate.summary
+    summary_lines = []
+    if summary:
+        summary_lines.append(f"  Summary: {summary.headline}")
+        if summary.top_reasons:
+            summary_lines.append("  Why it won: " + ", ".join(summary.top_reasons))
+        if summary.strengths:
+            summary_lines.append("  Strengths: " + " | ".join(summary.strengths))
+        if summary.tradeoffs:
+            summary_lines.append("  Tradeoffs: " + " | ".join(summary.tradeoffs))
     return "\n".join(
         [
             f"Candidate {index + 1}",
@@ -63,6 +73,7 @@ def format_candidate(index: int, candidate) -> str:
             f"  Climb: {meters_to_feet(route.ascent_m):.0f} ft",
             f"  Start offset: {candidate.start_offset_m / 1609.344:.2f} mi",
             f"  Badges: {badges}",
+            *summary_lines,
             "  Breakdown: "
             + ", ".join(
                 f"{name}={value:.2f}" for name, value in candidate.score_breakdown.items()
@@ -127,6 +138,16 @@ def main() -> int:
                         {"code": badge.code, "label": badge.label, "strength": badge.strength}
                         for badge in (candidate.badges or [])
                     ],
+                    "summary_text": (
+                        {
+                            "headline": candidate.summary.headline,
+                            "top_reasons": candidate.summary.top_reasons,
+                            "strengths": candidate.summary.strengths,
+                            "tradeoffs": candidate.summary.tradeoffs,
+                        }
+                        if candidate.summary
+                        else None
+                    ),
                     "start_coord": candidate.start_coord,
                     "start_offset_miles": candidate.start_offset_m / 1609.344,
                     "summary": {

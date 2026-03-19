@@ -2,6 +2,8 @@ import unittest
 
 from run_router.service import (
     RouteError,
+    LoopCandidate,
+    build_candidate_summary,
     parse_planning_request,
     compute_elevation_stats,
     derive_route_badges,
@@ -193,6 +195,52 @@ class ServiceTests(unittest.TestCase):
 
         self.assertIn("HL", codes)
         self.assertNotIn("FL", codes)
+
+    def test_build_candidate_summary_explains_top_reasons(self):
+        route = self.make_route_result(
+            extras={
+                "surface": {"summary": [{"value": 1, "distance": 7600.0}]},
+                "noise": {"summary": [{"value": 1, "distance": 7600.0}]},
+            },
+            ascent_m=35.0,
+        )
+        traits = derive_route_traits(
+            route=route,
+            score_breakdown={
+                "distance": 0.88,
+                "pavement": 0.91,
+                "quiet": 0.87,
+                "green": 0.35,
+                "hills": 0.75,
+                "start": 0.93,
+            },
+            start_offset_m=20.0,
+            start_radius_m=200.0,
+        )
+        candidate = LoopCandidate(
+            start_coord=[-122.0, 45.0],
+            start_offset_m=20.0,
+            seed=1,
+            route=route,
+            score=0.8,
+            score_breakdown={
+                "distance": 0.88,
+                "pavement": 0.91,
+                "quiet": 0.87,
+                "green": 0.35,
+                "hills": 0.75,
+                "start": 0.93,
+            },
+            traits=traits,
+            badges=derive_route_badges(traits),
+        )
+
+        summary = build_candidate_summary(candidate)
+
+        self.assertTrue(summary.headline)
+        self.assertGreaterEqual(len(summary.top_reasons), 2)
+        self.assertIn("start proximity", summary.top_reasons)
+        self.assertTrue(any("paved" in item.lower() for item in summary.strengths))
 
 
 if __name__ == "__main__":

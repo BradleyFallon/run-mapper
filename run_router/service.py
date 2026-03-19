@@ -80,6 +80,7 @@ class LoopCandidate:
     score_breakdown: dict[str, float]
     traits: "RouteTraits | None" = None
     badges: list["RouteBadge"] | None = None
+    summary: "RouteSummary | None" = None
 
 
 @dataclass
@@ -113,6 +114,14 @@ class RouteBadge:
     code: str
     label: str
     strength: float
+
+
+@dataclass
+class RouteSummary:
+    headline: str
+    strengths: list[str]
+    tradeoffs: list[str]
+    top_reasons: list[str]
 
 
 def parse_coord(text: str) -> list[float]:
@@ -729,6 +738,104 @@ def derive_route_badges(traits: RouteTraits) -> list[RouteBadge]:
     return selected[:4]
 
 
+def score_reason_label(name: str, traits: RouteTraits) -> str:
+    labels = {
+        "distance": "distance fit",
+        "start": "start proximity",
+        "pavement": "surface consistency",
+        "quiet": "quietness",
+        "green": "green access",
+        "hills": "elevation profile",
+    }
+    if name != "hills":
+        return labels.get(name, name)
+    if traits.ascent_ft_per_mi >= 150:
+        return "hill profile"
+    if traits.ascent_ft_per_mi <= 90:
+        return "flat profile"
+    return labels["hills"]
+
+
+def build_strengths(traits: RouteTraits, score_breakdown: dict[str, float]) -> list[str]:
+    strengths: list[str] = []
+    if score_breakdown.get("distance", 0.0) >= 0.82:
+        strengths.append("Hits the requested distance closely.")
+    if score_breakdown.get("start", 0.0) >= 0.82:
+        strengths.append("Starts close to the requested location.")
+    if traits.paved_ratio is not None and traits.paved_ratio >= 0.7:
+        strengths.append("Keeps footing mostly paved.")
+    elif traits.trail_ratio is not None and traits.trail_ratio >= 0.45:
+        strengths.append("Leans into trail-heavy segments.")
+    if score_breakdown.get("quiet", 0.0) >= 0.72:
+        strengths.append("Stays relatively quiet for the area.")
+    if score_breakdown.get("green", 0.0) >= 0.7:
+        strengths.append("Includes greener sections.")
+    if traits.ascent_ft_per_mi >= 180 and score_breakdown.get("hills", 0.0) >= 0.58:
+        strengths.append("Delivers a stronger climbing profile.")
+    elif traits.ascent_ft_per_mi <= 90 and score_breakdown.get("hills", 0.0) >= 0.45:
+        strengths.append("Keeps the elevation profile relatively flat.")
+    if traits.is_loop:
+        strengths.append("Returns to the start cleanly as a loop.")
+    return strengths
+
+
+def build_tradeoffs(traits: RouteTraits, score_breakdown: dict[str, float]) -> list[str]:
+    tradeoffs: list[str] = []
+    if score_breakdown.get("distance", 1.0) < 0.72:
+        tradeoffs.append("Distance fit is looser than the strongest candidates.")
+    if score_breakdown.get("pavement", 1.0) < 0.5:
+        tradeoffs.append("Surface mix may be less consistent than a pavement-first run.")
+    if score_breakdown.get("quiet", 1.0) < 0.45:
+        tradeoffs.append("May feel busier or noisier in places.")
+    if score_breakdown.get("green", 1.0) < 0.45:
+        tradeoffs.append("Has less green exposure than a more scenic option.")
+    if not traits.is_loop:
+        tradeoffs.append("Loop closure is weaker than ideal.")
+    return tradeoffs
+
+
+def build_candidate_summary(candidate: LoopCandidate) -> RouteSummary:
+    traits = candidate.traits
+    if traits is None:
+        raise RouteError("Cannot summarize a candidate before traits are derived.")
+
+    ranked_reasons = sorted(
+        candidate.score_breakdown.items(),
+        key=lambda item: item[1],
+        reverse=True,
+    )
+    top_reasons = [
+        score_reason_label(name, traits)
+        for name, value in ranked_reasons
+        if value >= 0.6
+    ][:3]
+    if not top_reasons:
+        top_reasons = [score_reason_label(ranked_reasons[0][0], traits)]
+
+    strengths = build_strengths(traits, candidate.score_breakdown)
+    tradeoffs = build_tradeoffs(traits, candidate.score_breakdown)
+
+    if "hill profile" in top_reasons:
+        headline = "Climbing-focused loop with strong training value."
+    elif "flat profile" in top_reasons:
+        headline = "Flatter loop with a smoother elevation profile."
+    elif "surface consistency" in top_reasons:
+        headline = "Footing-forward loop with more consistent surface quality."
+    elif "quietness" in top_reasons:
+        headline = "Quieter loop that should feel calmer on the run."
+    elif "green access" in top_reasons:
+        headline = "Greener loop with more scenic exposure."
+    else:
+        headline = "Balanced loop with a strong overall fit."
+
+    return RouteSummary(
+        headline=headline,
+        strengths=strengths[:4],
+        tradeoffs=tradeoffs[:3],
+        top_reasons=top_reasons,
+    )
+
+
 def fetch_directions_geojson(
     *,
     api_key: str,
@@ -899,17 +1006,19 @@ def build_loop_candidates(
                 start_radius_m=start_radius_m,
             )
             badges = derive_route_badges(traits)
+            candidate = LoopCandidate(
+                start_coord=start_coord,
+                start_offset_m=start_offset_m,
+                seed=index * 10 + seed,
+                route=route,
+                score=score,
+                score_breakdown=score_breakdown,
+                traits=traits,
+                badges=badges,
+            )
+            candidate.summary = build_candidate_summary(candidate)
             candidates.append(
-                LoopCandidate(
-                    start_coord=start_coord,
-                    start_offset_m=start_offset_m,
-                    seed=index * 10 + seed,
-                    route=route,
-                    score=score,
-                    score_breakdown=score_breakdown,
-                    traits=traits,
-                    badges=badges,
-                )
+                candidate
             )
 
     if not candidates:

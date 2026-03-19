@@ -170,6 +170,16 @@ def build_loop_response(payload: dict) -> dict:
                     {"code": badge.code, "label": badge.label, "strength": badge.strength}
                     for badge in (candidate.badges or [])
                 ],
+                "summary_text": (
+                    {
+                        "headline": candidate.summary.headline,
+                        "top_reasons": candidate.summary.top_reasons,
+                        "strengths": candidate.summary.strengths,
+                        "tradeoffs": candidate.summary.tradeoffs,
+                    }
+                    if candidate.summary
+                    else None
+                ),
                 "summary": {
                     "distance_miles": candidate.route.distance_mi,
                     "duration_minutes": candidate.route.duration_s / 60.0,
