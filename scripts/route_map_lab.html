@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RouteScout Map Lab</title>
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #07050a;
+        --panel: #15121a;
+        --panel-raised: #1b1721;
+        --border: #2b2433;
+        --text: #f5f7fa;
+        --muted: #afb3bf;
+        --accent: #c8ff55;
+        --accent-soft: rgba(200, 255, 85, 0.14);
+        --info: #7cb9ff;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at top left, rgba(200, 255, 85, 0.05), transparent 20%),
+          radial-gradient(circle at top right, rgba(124, 185, 255, 0.06), transparent 24%),
+          linear-gradient(180deg, #0d0a12, var(--bg));
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 360px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        padding: 20px;
+        border-right: 1px solid var(--border);
+        background: rgba(21, 18, 26, 0.9);
+        overflow-y: auto;
+      }
+
+      .brand {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .brand img {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        padding: 7px;
+        background: linear-gradient(145deg, rgba(200, 255, 85, 0.14), rgba(124, 185, 255, 0.1));
+        border: 1px solid rgba(200, 255, 85, 0.28);
+      }
+
+      .eyebrow {
+        margin: 0 0 4px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      h1, h2, h3 {
+        margin: 0;
+        font-style: italic;
+        line-height: 1;
+      }
+
+      h1 { font-size: 28px; }
+      h2 { font-size: 18px; margin-bottom: 12px; }
+      p, label, input, textarea, button, select {
+        font: inherit;
+      }
+
+      .copy {
+        margin: 0 0 20px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .card {
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(27, 23, 33, 0.92), rgba(21, 18, 26, 0.96));
+        margin-bottom: 14px;
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      input, select, textarea, button {
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: #120f16;
+        color: var(--text);
+        padding: 10px 12px;
+      }
+
+      input[type="range"] {
+        padding: 0;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .primary {
+        background: var(--accent);
+        color: #050607;
+        border-color: rgba(200, 255, 85, 0.5);
+      }
+
+      .secondary {
+        background: var(--accent-soft);
+      }
+
+      .map-wrap {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) auto;
+        min-height: 100vh;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+
+      .results {
+        max-height: 34vh;
+        overflow-y: auto;
+        border-top: 1px solid var(--border);
+        background: rgba(13, 10, 18, 0.96);
+        padding: 16px;
+      }
+
+      .candidate {
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--panel);
+        margin-bottom: 10px;
+        cursor: pointer;
+      }
+
+      .candidate.active {
+        border-color: rgba(200, 255, 85, 0.5);
+        background: linear-gradient(180deg, rgba(200, 255, 85, 0.07), rgba(21, 18, 26, 0.96));
+      }
+
+      .candidate-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .meta, .breakdown, .status {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 8px 0;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: rgba(200, 255, 85, 0.1);
+        border: 1px solid rgba(200, 255, 85, 0.18);
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      .status {
+        min-height: 20px;
+        margin-top: 10px;
+      }
+
+      @media (max-width: 960px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--border);
+        }
+        .map-wrap {
+          min-height: 65vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img src="/logo.png" alt="RouteScout logo" />
+          <div>
+            <p class="eyebrow">Local Lab</p>
+            <h1>RouteScout Map</h1>
+          </div>
+        </div>
+        <p class="copy">
+          Use your location or click the map to set a start point. Then generate live ORS loop
+          candidates using the current Python route engine.
+        </p>
+
+        <div class="card">
+          <h2>Plan</h2>
+          <div class="field">
+            <label for="planPreset">Starter plan</label>
+            <select id="planPreset">
+              <option value="">Custom</option>
+            </select>
+          </div>
+          <div id="planMeta" class="meta"></div>
+        </div>
+
+        <div class="card">
+          <h2>Start</h2>
+          <div class="grid-2">
+            <div class="field">
+              <label for="lat">Latitude</label>
+              <input id="lat" type="number" step="any" value="45.5236" />
+            </div>
+            <div class="field">
+              <label for="lon">Longitude</label>
+              <input id="lon" type="number" step="any" value="-122.6765" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="radius">Start radius miles</label>
+            <input id="radius" type="number" step="0.1" min="0" value="0.2" />
+          </div>
+          <div class="actions">
+            <button id="locateBtn" class="secondary" type="button">Use My Location</button>
+            <button id="dropPinBtn" type="button">Click Map To Set Start</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Run</h2>
+          <div class="grid-2">
+            <div class="field">
+              <label for="miles">Target miles</label>
+              <input id="miles" type="number" step="0.1" min="0.1" value="3.0" />
+            </div>
+            <div class="field">
+              <label for="profile">Profile</label>
+              <select id="profile">
+                <option value="foot-walking" selected>foot-walking</option>
+                <option value="foot-hiking">foot-hiking</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="maxCandidates">Max candidates</label>
+              <input id="maxCandidates" type="number" min="1" max="8" value="3" />
+            </div>
+            <div class="field">
+              <label for="seedCount">Seed count</label>
+              <input id="seedCount" type="number" min="1" max="8" value="3" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Preferences</h2>
+          <div class="field">
+            <label for="pavement">Pavement</label>
+            <input id="pavement" type="range" min="0" max="1" step="0.05" value="0.8" />
+          </div>
+          <div class="field">
+            <label for="quiet">Quiet</label>
+            <input id="quiet" type="range" min="0" max="1" step="0.05" value="0.8" />
+          </div>
+          <div class="field">
+            <label for="green">Green</label>
+            <input id="green" type="range" min="0" max="1" step="0.05" value="0.7" />
+          </div>
+          <div class="field">
+            <label for="hills">Hills (-1 flat, 1 hilly)</label>
+            <input id="hills" type="range" min="-1" max="1" step="0.05" value="0" />
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Brief</h2>
+          <div class="field">
+            <label for="brief">Optional natural-language brief</label>
+            <textarea id="brief" rows="4" placeholder="Quiet, paved morning loop with gentle hills."></textarea>
+          </div>
+          <div class="actions">
+            <button id="generateBtn" class="primary" type="button">Generate Routes</button>
+            <button id="clearBtn" type="button">Clear Routes</button>
+          </div>
+          <div id="status" class="status"></div>
+        </div>
+
+        <div class="card">
+          <h2>Debug</h2>
+          <div id="debugMeta" class="meta">No request yet.</div>
+        </div>
+      </aside>
+
+      <section class="map-wrap">
+        <div id="map"></div>
+        <div id="results" class="results">
+          <div class="meta">No routes yet. Generate a loop to inspect candidates.</div>
+        </div>
+      </section>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script>
+      const map = L.map("map").setView([45.5236, -122.6765], 13);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(map);
+
+      const statusEl = document.getElementById("status");
+      const resultsEl = document.getElementById("results");
+      const planPresetEl = document.getElementById("planPreset");
+      const planMetaEl = document.getElementById("planMeta");
+      const debugMetaEl = document.getElementById("debugMeta");
+      const latEl = document.getElementById("lat");
+      const lonEl = document.getElementById("lon");
+      const radiusEl = document.getElementById("radius");
+      const locateBtn = document.getElementById("locateBtn");
+      const dropPinBtn = document.getElementById("dropPinBtn");
+      const generateBtn = document.getElementById("generateBtn");
+      const clearBtn = document.getElementById("clearBtn");
+
+      let clickToSetStart = false;
+      let centerMarker = null;
+      let radiusCircle = null;
+      let routeLayers = [];
+      let startMarkers = [];
+      let currentCandidates = [];
+      let selectedIndex = 0;
+      let planPresets = {};
+
+      const routeStyles = [
+        { color: "#c8ff55", weight: 6, opacity: 0.95 },
+        { color: "#7cb9ff", weight: 5, opacity: 0.8 },
+        { color: "#f5f7fa", weight: 4, opacity: 0.7 },
+        { color: "#ffb84d", weight: 4, opacity: 0.7 },
+      ];
+
+      function setStatus(message, isError = false) {
+        statusEl.textContent = message;
+        statusEl.style.color = isError ? "#ff8aa3" : "#afb3bf";
+      }
+
+      function parseCenter() {
+        return [parseFloat(latEl.value), parseFloat(lonEl.value)];
+      }
+
+      function updateCenterVisuals() {
+        const [lat, lon] = parseCenter();
+        const radiusMiles = parseFloat(radiusEl.value || "0");
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+        if (centerMarker) centerMarker.remove();
+        if (radiusCircle) radiusCircle.remove();
+
+        centerMarker = L.marker([lat, lon]).addTo(map);
+        radiusCircle = L.circle([lat, lon], {
+          radius: radiusMiles * 1609.344,
+          color: "#c8ff55",
+          opacity: 0.65,
+          fillOpacity: 0.05,
+          weight: 2,
+        }).addTo(map);
+      }
+
+      function clearRoutes() {
+        routeLayers.forEach(layer => layer.remove());
+        startMarkers.forEach(marker => marker.remove());
+        routeLayers = [];
+        startMarkers = [];
+        currentCandidates = [];
+        selectedIndex = 0;
+        resultsEl.innerHTML = '<div class="meta">No routes yet. Generate a loop to inspect candidates.</div>';
+      }
+
+      function renderDebug(info) {
+        if (!info) {
+          debugMetaEl.textContent = "No request yet.";
+          return;
+        }
+        debugMetaEl.textContent =
+          `center=${info.center_coord} | profile=${info.profile} | miles=${info.target_distance_miles} | radius=${info.start_radius_miles} | pavement=${info.effective_preferences.pavement_preference.toFixed(2)} | quiet=${info.effective_preferences.quiet_preference.toFixed(2)} | green=${info.effective_preferences.green_preference.toFixed(2)} | hills=${info.effective_preferences.hill_preference.toFixed(2)}`;
+      }
+
+      function applyPlanPreset(key) {
+        const plan = planPresets[key];
+        if (!plan) {
+          planMetaEl.textContent = "Custom plan. Adjust fields directly.";
+          return;
+        }
+        document.getElementById("miles").value = plan.target_distance_miles;
+        radiusEl.value = plan.start_radius_miles;
+        document.getElementById("pavement").value = plan.pavement_preference;
+        document.getElementById("quiet").value = plan.quiet_preference;
+        document.getElementById("green").value = plan.green_preference;
+        document.getElementById("hills").value = plan.hill_preference;
+        document.getElementById("brief").value = plan.design_brief || "";
+        planMetaEl.textContent = `${plan.category} · ${plan.label}`;
+        updateCenterVisuals();
+      }
+
+      async function loadPlans() {
+        const response = await fetch("/api/plans");
+        const data = await response.json();
+        planPresets = data.plans || {};
+        Object.entries(planPresets).forEach(([key, plan]) => {
+          const option = document.createElement("option");
+          option.value = key;
+          option.textContent = `${plan.category} · ${plan.label}`;
+          planPresetEl.appendChild(option);
+        });
+      }
+
+      function focusCandidate(index) {
+        selectedIndex = index;
+        routeLayers.forEach((layer, layerIndex) => {
+          const style = routeStyles[layerIndex % routeStyles.length];
+          const active = layerIndex === index;
+          layer.setStyle({
+            color: style.color,
+            weight: active ? style.weight + 2 : style.weight,
+            opacity: active ? 1 : Math.max(0.35, style.opacity - 0.25),
+          });
+        });
+
+        document.querySelectorAll(".candidate").forEach((card, cardIndex) => {
+          card.classList.toggle("active", cardIndex === index);
+        });
+      }
+
+      function renderCandidates(candidates, llmSummary) {
+        if (!candidates.length) {
+          resultsEl.innerHTML = '<div class="meta">No candidates returned.</div>';
+          return;
+        }
+
+        resultsEl.innerHTML = "";
+        if (llmSummary) {
+          const summary = document.createElement("div");
+          summary.className = "meta";
+          summary.style.marginBottom = "10px";
+          summary.textContent = `LLM brief applied: ${llmSummary}`;
+          resultsEl.appendChild(summary);
+        }
+
+        candidates.forEach((candidate, index) => {
+          const card = document.createElement("article");
+          card.className = "candidate" + (index === 0 ? " active" : "");
+          const badges = candidate.badges.length
+            ? candidate.badges.map(b => `<span class="badge">${b.code}</span>`).join("")
+            : '<span class="meta">No badges</span>';
+          const breakdown = Object.entries(candidate.score_breakdown)
+            .map(([name, value]) => `${name}=${value.toFixed(2)}`)
+            .join(", ");
+          card.innerHTML = `
+            <div class="candidate-head">
+              <strong>Candidate ${index + 1}</strong>
+              <span class="meta">Score ${candidate.score.toFixed(3)}</span>
+            </div>
+            <div class="meta">${candidate.summary.distance_miles.toFixed(2)} mi · ${candidate.summary.duration_minutes.toFixed(1)} min · ${candidate.summary.ascent_feet.toFixed(0)} ft climb · start ${candidate.start_offset_miles.toFixed(2)} mi away</div>
+            <div class="badge-row">${badges}</div>
+            <div class="breakdown">${breakdown}</div>
+          `;
+          card.addEventListener("click", () => focusCandidate(index));
+          resultsEl.appendChild(card);
+        });
+      }
+
+      function drawCandidates(candidates) {
+        clearRoutes();
+        currentCandidates = candidates;
+
+        const bounds = [];
+        candidates.forEach((candidate, index) => {
+          const style = routeStyles[index % routeStyles.length];
+          const layer = L.geoJSON(candidate.geojson, {
+            style: {
+              color: style.color,
+              weight: index === 0 ? style.weight + 2 : style.weight,
+              opacity: index === 0 ? 1 : Math.max(0.35, style.opacity - 0.25),
+            },
+          }).addTo(map);
+          routeLayers.push(layer);
+          bounds.push(layer.getBounds());
+
+          const marker = L.circleMarker(
+            [candidate.start_coord[1], candidate.start_coord[0]],
+            {
+              radius: 5,
+              color: style.color,
+              fillColor: style.color,
+              fillOpacity: 0.9,
+              weight: 1,
+            }
+          ).addTo(map);
+          startMarkers.push(marker);
+        });
+
+        if (bounds.length) {
+          const merged = bounds.reduce((acc, item) => acc.extend(item), bounds[0]);
+          map.fitBounds(merged.pad(0.08));
+        }
+      }
+
+      async function generateRoutes() {
+        setStatus("Generating routes...");
+        clearRoutes();
+        updateCenterVisuals();
+
+        const payload = {
+          center_coord: `${parseFloat(lonEl.value)},${parseFloat(latEl.value)}`,
+          profile: document.getElementById("profile").value,
+          target_distance_miles: parseFloat(document.getElementById("miles").value),
+          start_radius_miles: parseFloat(radiusEl.value),
+          max_candidates: parseInt(document.getElementById("maxCandidates").value, 10),
+          seed_count: parseInt(document.getElementById("seedCount").value, 10),
+          pavement_preference: parseFloat(document.getElementById("pavement").value),
+          quiet_preference: parseFloat(document.getElementById("quiet").value),
+          green_preference: parseFloat(document.getElementById("green").value),
+          hill_preference: parseFloat(document.getElementById("hills").value),
+          design_brief: document.getElementById("brief").value.trim(),
+        };
+
+        try {
+          const response = await fetch("/api/loop", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || "Route generation failed.");
+          }
+
+          drawCandidates(data.candidates);
+          renderCandidates(data.candidates, data.llm_summary);
+          renderDebug(data.request_debug);
+          focusCandidate(0);
+          setStatus(`Generated ${data.candidates.length} candidate routes.`);
+        } catch (error) {
+          setStatus(error.message || String(error), true);
+        }
+      }
+
+      locateBtn.addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          setStatus("Geolocation is not supported in this browser.", true);
+          return;
+        }
+        setStatus("Looking up your location...");
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            latEl.value = position.coords.latitude.toFixed(6);
+            lonEl.value = position.coords.longitude.toFixed(6);
+            updateCenterVisuals();
+            map.setView([position.coords.latitude, position.coords.longitude], 14);
+            setStatus("Location updated.");
+          },
+          (error) => {
+            setStatus(error.message || "Unable to get your location.", true);
+          },
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      });
+
+      dropPinBtn.addEventListener("click", () => {
+        clickToSetStart = !clickToSetStart;
+        dropPinBtn.textContent = clickToSetStart ? "Click Active" : "Click Map To Set Start";
+        setStatus(
+          clickToSetStart
+            ? "Click the map to set the start location."
+            : "Map click mode disabled."
+        );
+      });
+
+      map.on("click", (event) => {
+        if (!clickToSetStart) return;
+        latEl.value = event.latlng.lat.toFixed(6);
+        lonEl.value = event.latlng.lng.toFixed(6);
+        updateCenterVisuals();
+        setStatus("Start location updated from map click.");
+      });
+
+      radiusEl.addEventListener("input", updateCenterVisuals);
+      latEl.addEventListener("change", updateCenterVisuals);
+      lonEl.addEventListener("change", updateCenterVisuals);
+      planPresetEl.addEventListener("change", () => applyPlanPreset(planPresetEl.value));
+      generateBtn.addEventListener("click", generateRoutes);
+      clearBtn.addEventListener("click", () => {
+        clearRoutes();
+        updateCenterVisuals();
+        renderDebug(null);
+        setStatus("Cleared route overlays.");
+      });
+
+      loadPlans().then(() => {
+        planMetaEl.textContent = "Custom plan. Adjust fields directly.";
+      });
+      updateCenterVisuals();
+    </script>
+  </body>
+</html>
