@@ -134,32 +134,22 @@ value.
 
 ## Pricing Direction
 
-The simplest early pricing model is:
-- free tier
-- paid subscription tier
+The current recommended structure is:
+- `Free`
+- `Plus`
+- `Pro`
 
-### Possible Free Tier
+Recommended pricing:
+- `Plus = $2.99 / month`
+- `Pro = $4.99 / month`
 
-- limited route generation
-- a small number of saved plans
-- basic route cards
+The tier logic is:
+- Free should support real run use in a limited way
+- Plus should unlock serious planning depth
+- Pro should later unlock real personalization and route intelligence
 
-### Possible Paid Tier
-
-- unlimited route generation
-- unlimited saved plans and saved routes
-- premium route comparison
-- richer route scouting features
-- better collection features
-- cross-device continuity
-
-The likely paid range is:
-- consumer subscription, roughly in the low monthly app-subscription range
-
-The exact number does not need to be locked immediately.
-The founder plan should focus first on:
-- whether we believe users will pay
-- which features are clearly premium
+For the detailed tier and funnel logic, use:
+- `commercial-strategy.md`
 
 ## Revenue Logic
 
@@ -253,7 +243,7 @@ before launch.
 The immediate business goal should be:
 - get the planner web app up quickly
 - build the iPhone MVP in the following weeks
-- establish the first paid customer base
+- establish early activated users and paying customers
 - create a strong premium brand presence
 
 ## Recommended Founder Conversation

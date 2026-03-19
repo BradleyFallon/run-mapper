@@ -13,8 +13,7 @@ It answers:
 - what can be implemented immediately versus later
 
 This is the bridge between:
-- [route-card-feature-badge-spec.md](./route-card-feature-badge-spec.md)
-- [route-badge-trigger-matrix.md](./route-badge-trigger-matrix.md)
+- [route-card-system.md](/Users/fallbro/code/run-mapper/docs/product/route-card-system.md)
 - the current Python runtime in [service.py](/Users/fallbro/code/run-mapper/run_router/service.py)
 
 ## Current Runtime Reality

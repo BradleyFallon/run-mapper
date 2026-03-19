@@ -94,8 +94,8 @@ The agreement should define:
 - how quickly the bonus must be paid after the milestone is verified
 
 Recommended definition:
-- an activated user is a user who starts a trial, paid subscription, or beta offer and
-  actually uses the product
+- an activated user is a user who creates an account, meaningfully uses RouteScout, and completes
+  a real planning or run-use action
 
 ## Founder Roles
 
@@ -211,7 +211,7 @@ Recommended protection:
 - missed payment or failure to fund should pause or terminate the build obligation
 - ownership assignment should not continue automatically if payment stops
 
-## Subscriber Bonus Definitions
+## Activation Bonus Definitions
 
 The contract should define:
 - what counts as an activated user
@@ -220,8 +220,8 @@ The contract should define:
 - whether annual and monthly users both count
 
 Recommended simple definition:
-- an activated user is a user who starts a trial, paid subscription, or beta offer and
-  actually uses the product
+- an activated user is a user who creates an account, meaningfully uses RouteScout, and completes
+  a real planning or run-use action
 
 Recommended reporting:
 - report activated users separately from paying customers

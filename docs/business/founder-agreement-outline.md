@@ -79,7 +79,7 @@ Specify:
 Also specify:
 - whether missed payments pause work obligations
 
-## 8. Subscriber Bonuses
+## 8. Activation Bonuses
 
 Specify:
 - `$5,000` at `100 activated users`
@@ -89,6 +89,10 @@ Define:
 - what counts as an activated user
 - who confirms the milestone
 - how quickly the bonus is paid
+
+Recommended working definition:
+- an activated user is a user who creates an account, meaningfully uses RouteScout, and completes
+  a real planning or run-use action
 
 ## 9. Pre-Existing IP
 

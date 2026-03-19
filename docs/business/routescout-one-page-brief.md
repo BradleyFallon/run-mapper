@@ -79,6 +79,11 @@ The goal is to be ready and actively trying.
 
 ## Business Plan And Funding
 
+Commercial model:
+- free tier for real but limited RouteScout use
+- `Plus` at `$2.99 / month` for serious planning depth
+- `Pro` at `$4.99 / month` for later personalized route intelligence
+
 The founder proposal is:
 - `$1,000/week` for `12 weeks`
 - `$5,000` bonus at `100 activated users`

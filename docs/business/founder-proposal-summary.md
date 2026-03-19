@@ -65,7 +65,8 @@ Total:
 - `$10,000` at `1,000 activated users`
 
 Activated user definition:
-- a user who starts a trial, paid subscription, or beta offer and actually uses the product
+- a user who creates an account, meaningfully uses RouteScout, and completes a real planning or
+  run-use action
 
 ## Founder Role Split
 

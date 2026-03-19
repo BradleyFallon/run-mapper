@@ -4,8 +4,8 @@
 
 This document defines the first visual design system for RouteScout.
 
-It translates the brand direction into concrete UI guidance for an iPhone-first product with a
-premium dark theme, restrained color, and high contrast.
+It translates the brand direction into concrete UI guidance for RouteScout's web and iPhone
+surfaces with a premium dark theme, restrained color, and high contrast.
 
 ## Design Principles
 

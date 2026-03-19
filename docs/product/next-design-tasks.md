@@ -2,162 +2,76 @@
 
 ## Purpose
 
-This document defines the next design tasks in order.
+This document lists the current next design tasks, not the full history of what has already been
+completed.
 
-The goal is to keep the process focused and prevent the product work from turning into an
-unstructured pile of ideas.
+Use it as the short active queue.
 
 ## Current State
 
-We already have:
+Already defined:
 - product framing
 - terminology
 - personas and user stories
 - MVP requirements
 - platform strategy
 - brand direction
-- visual design system
+- visual system
+- web planner IA
+- web planner wireframe spec
+- launch plan catalog
+- route scoring model
 
-That is enough foundation to move from concept documents into surface-specific design.
+## Current Priority Rule
 
-## Priority Rule
+Keep the planning model clean and finish the iPhone-side product definition before doing more broad
+spec writing.
 
-Design the planner web app first.
-After that, design the iOS app.
+## Active Next Tasks
 
-Reason:
-- the web planner is the best place to define the planning workflow clearly
-- the iOS app should inherit the planning model rather than inventing a second one
-- iOS navigation design will be easier once the planning outputs are defined
-
-## Next Tasks In Order
-
-### 1. Web Planner Information Architecture
+### 1. iOS Information Architecture
 
 Goal:
-- define the structure of the web planning experience
-
-Questions to answer:
-- what are the top-level web sections?
-- what is the main planner workspace layout?
-- what are the major planner states?
-- how do saved plans and saved routes fit into navigation?
-
-Output:
-- `web-planner-information-architecture.md`
-
-### 2. Web Planner Low-Fidelity Wireframes
-
-Goal:
-- sketch the planner experience without visual polish
-
-Screens or states to wireframe:
-- planner empty state
-- starter-plan browsing state
-- plan editing state
-- generating state
-- candidate results state
-- selected route detail state
-- saved plans view
-- saved routes view
-
-Output:
-- low-fidelity planner wireframes
-
-Status:
-- specified in `web-planner-wireframe-spec.md`
-- ready for actual sketching or mockup work
-
-### 3. Launch Plan Catalog
-
-Goal:
-- define the starter plans that ship in the MVP
-
-Questions to answer:
-- which starter plans exist at launch?
-- what category does each belong to?
-- what are the default values for each?
-- which inputs are editable in the basic view versus advanced view?
-
-Output:
-- `launch-plan-catalog.md`
-
-Status:
-- completed
-
-### 4. Route Scoring Model
-
-Goal:
-- define how candidate routes are compared and ranked
-
-Questions to answer:
-- what metrics matter most?
-- how do different plan categories weight those metrics?
-- what is deterministic versus LLM-assisted?
-- how is the recommended route explained?
-
-Output:
-- `route-scoring-model.md`
-
-Status:
-- completed
-
-### 5. iOS Information Architecture
-
-Goal:
-- define how the iPhone app organizes planning, saved items, and route use
-
-Questions to answer:
-- what are the main tabs or sections?
-- how does web-to-phone handoff work?
-- how does a user open a planned route on iPhone?
-- how should saved plans and saved routes appear on mobile?
+- define the main sections of the iPhone app
+- define how saved plans, saved routes, and active routes appear on mobile
+- define the handoff from web planning to iPhone use
 
 Output:
 - `ios-information-architecture.md`
 
-### 6. iOS Navigation Experience
+### 2. iOS Navigation Experience
 
 Goal:
 - define the in-run route experience
-
-Questions to answer:
-- what is shown before starting the run?
-- what is shown during the run?
-- how much guidance is needed?
-- what belongs in MVP versus later?
+- define what guidance exists before, during, and after the run
+- define what belongs in MVP versus later
 
 Output:
 - `ios-navigation-experience.md`
 
-### 7. Sync And Account Model
+### 3. Sync And Account Model
 
 Goal:
-- define cross-surface continuity
-
-Questions to answer:
-- what needs to sync between web and iPhone?
-- what account model is required?
-- how do saved plans and selected routes travel across devices?
+- define what must sync between web and iPhone
+- define the account model
+- define how plans, routes, and free/paid state carry across surfaces
 
 Output:
 - `sync-and-account-model.md`
 
-## What Not To Do Yet
+### 4. Higher-Fidelity Web Screens
 
-Avoid these for now:
-- high-fidelity mockups of every screen
-- deep visual polish for iOS before the web planner flow exists
-- detailed navigation edge cases before route-planning IA is settled
-- excessive branching into secondary features
+Goal:
+- turn the planner IA and wireframe spec into tighter screen comps
+- validate the Scout Spec and Route Card presentation in a more realistic planner layout
 
-## Immediate Next Move
+Output:
+- higher-fidelity planner mockups or HTML prototypes
 
-The immediate next artifact should be:
-- `ios-information-architecture.md`
+## Not A Priority Right Now
 
-After that, the next written design doc should be:
-- `ios-navigation-experience.md`
-
-Status:
-- completed
+Avoid spending time on:
+- speculative secondary features
+- deep edge-case flows
+- polishing every mobile detail before the iPhone IA exists
+- producing more strategy docs that repeat existing conclusions

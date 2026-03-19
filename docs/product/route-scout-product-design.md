@@ -457,7 +457,7 @@ Related scenario docs:
 
 Related planning docs:
 - [route-scout-terminology.md](./route-scout-terminology.md)
-- [route-plans-and-tuning.md](./route-plans-and-tuning.md)
+- [plan-system.md](./plan-system.md)
 - [mvp-feature-requirements.md](./mvp-feature-requirements.md)
 - [platform-strategy.md](./platform-strategy.md)
 - [brand-positioning-and-identity.md](./brand-positioning-and-identity.md)

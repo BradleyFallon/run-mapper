@@ -40,10 +40,9 @@ These docs define who the product is for and the situations it needs to support.
 
 These docs cover concrete product-model choices.
 
-- [route-plans-and-tuning.md](./route-plans-and-tuning.md)
-  How starter plans, saved plans, and advanced tuning should work.
-- [plan-parameter-model.md](./plan-parameter-model.md)
-  Parameter families, priority ranking, MVP guardrails, and what plan cards should show.
+- [plan-system.md](./plan-system.md)
+  Active plan model covering starter plans, saved plans, priority structure, parameter families,
+  and tuning guardrails.
 
 ## Brand And Visuals
 
@@ -55,12 +54,9 @@ These docs define how the product should feel and look.
   Colors, typography, spacing, surfaces, and UI rules.
 - [icon-vocabulary.md](./icon-vocabulary.md)
   Shared icon meanings, SF Symbols and Lucide counterparts, and RouteScout badge guidance.
-- [route-card-feature-badge-spec.md](./route-card-feature-badge-spec.md)
-  Route badge meanings, trigger rules, ordering, and card-level badge limits.
-- [route-badge-trigger-matrix.md](./route-badge-trigger-matrix.md)
-  Badge derivation guidance tying Route Card badges to route traits, scores, and metadata.
-- [runtime-badge-derivation.md](./runtime-badge-derivation.md)
-  Runtime-oriented guidance for attaching Route Card badges inside `run_router/service.py`.
+- [route-card-system.md](./route-card-system.md)
+  Active Route Card badge model covering badge meaning, trigger style, ordering, and MVP
+  confidence levels.
 - [style-guide/index.html](./style-guide/index.html)
   Browser-viewable HTML/CSS style guide for inspecting tokens, typography, components, and planner aesthetics.
 
@@ -97,9 +93,10 @@ If you are continuing product design work, use this order:
 1. [next-design-tasks.md](./next-design-tasks.md)
 2. [web-planner-information-architecture.md](./web-planner-information-architecture.md)
 3. [web-planner-wireframe-spec.md](./web-planner-wireframe-spec.md)
-4. [launch-plan-catalog.md](./launch-plan-catalog.md)
-5. route scoring model
-6. iOS information architecture
+4. [route-scoring-model.md](./route-scoring-model.md)
+5. define `ios-information-architecture.md`
+6. define `ios-navigation-experience.md`
+7. define `sync-and-account-model.md`
 
 ## Surface Design
 
@@ -112,13 +109,20 @@ If you are continuing product design work, use this order:
 
 - [launch-plan-catalog.md](./launch-plan-catalog.md)
   Starter plans for MVP, including categories, defaults, and basic versus advanced controls.
-- [plan-parameter-model.md](./plan-parameter-model.md)
-  Shared plan parameter structure, top-priority rules, and plan card summary guidance.
+- [plan-system.md](./plan-system.md)
+  Shared plan structure, top-priority rules, parameter families, and plan card summary guidance.
 
 ## Scoring
 
 - [route-scoring-model.md](./route-scoring-model.md)
   Shared scoring dimensions, category weighting, plan-level modifiers, and MVP recommendation logic.
+
+## Archive And Implementation Notes
+
+- [archive/README.md](./archive/README.md)
+  Superseded product docs preserved for reference.
+- [../implementation/README.md](../implementation/README.md)
+  Implementation-facing notes that should not live in the product design set.
 
 ## Guidance
 
