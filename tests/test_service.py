@@ -2,6 +2,7 @@ import unittest
 
 from run_router.service import (
     RouteError,
+    parse_planning_request,
     compute_elevation_stats,
     derive_route_badges,
     derive_route_traits,
@@ -65,6 +66,47 @@ class ServiceTests(unittest.TestCase):
     def test_generate_candidate_starts_returns_center_for_zero_radius(self):
         starts = generate_candidate_starts([-122.6, 45.5], 0.0)
         self.assertEqual(starts, [([-122.6, 45.5], 0.0)])
+
+    def test_parse_planning_request_supports_short_aliases(self):
+        request = parse_planning_request(
+            {
+                "center": "-122.6765,45.5236",
+                "miles": 4.5,
+                "radius": 0.25,
+                "pavement": 0.9,
+                "quiet": 0.6,
+                "green": 0.4,
+                "hills": -0.25,
+                "brief": "Easy nearby loop.",
+            },
+            seed_count_default=2,
+            start_limit_default=4,
+        )
+
+        self.assertEqual(request.center, [-122.6765, 45.5236])
+        self.assertEqual(request.target_distance_miles, 4.5)
+        self.assertEqual(request.start_radius_miles, 0.25)
+        self.assertEqual(request.seed_count, 2)
+        self.assertEqual(request.start_limit, 4)
+        self.assertEqual(request.preferences.pavement_preference, 0.9)
+        self.assertEqual(request.design_brief, "Easy nearby loop.")
+
+    def test_parse_planning_request_uses_defaults(self):
+        request = parse_planning_request(
+            {"center_coord": "-122.6765,45.5236"},
+            target_distance_default=3.0,
+            start_radius_default=0.2,
+            max_candidates_default=3,
+            seed_count_default=3,
+            start_limit_default=4,
+        )
+
+        self.assertEqual(request.profile, "foot-walking")
+        self.assertEqual(request.target_distance_miles, 3.0)
+        self.assertEqual(request.start_radius_miles, 0.2)
+        self.assertEqual(request.max_candidates, 3)
+        self.assertEqual(request.seed_count, 3)
+        self.assertEqual(request.start_limit, 4)
 
     def test_derive_route_traits_reports_surface_and_loop_shape(self):
         route = self.make_route_result(

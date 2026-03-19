@@ -50,6 +50,27 @@ class LoopPreferenceProfile:
 
 
 @dataclass
+class PlanningRequest:
+    center: list[float]
+    profile: str
+    target_distance_miles: float
+    start_radius_miles: float
+    max_candidates: int
+    seed_count: int
+    start_limit: int
+    preferences: LoopPreferenceProfile
+    design_brief: str
+
+    @property
+    def target_distance_m(self) -> float:
+        return miles_to_meters(self.target_distance_miles)
+
+    @property
+    def start_radius_m(self) -> float:
+        return miles_to_meters(self.start_radius_miles)
+
+
+@dataclass
 class LoopCandidate:
     start_coord: list[float]
     start_offset_m: float
@@ -149,6 +170,112 @@ def parse_bias(value: object, *, name: str, minimum: float = 0.0, maximum: float
     if parsed < minimum or parsed > maximum:
         raise RouteError(f"{name} must be between {minimum} and {maximum}.")
     return parsed
+
+
+def first_value(data: dict, *names: str, default=None):
+    for name in names:
+        if name in data:
+            return data[name]
+    return default
+
+
+def parse_preferences(
+    data: dict,
+    *,
+    pavement_default: float = 0.8,
+    quiet_default: float = 0.8,
+    green_default: float = 0.7,
+    hill_default: float = 0.0,
+) -> LoopPreferenceProfile:
+    return LoopPreferenceProfile(
+        pavement_preference=parse_bias(
+            first_value(data, "pavement_preference", "pavement", default=pavement_default),
+            name="Pavement preference",
+        ),
+        quiet_preference=parse_bias(
+            first_value(data, "quiet_preference", "quiet", default=quiet_default),
+            name="Quiet preference",
+        ),
+        green_preference=parse_bias(
+            first_value(data, "green_preference", "green", default=green_default),
+            name="Green preference",
+        ),
+        hill_preference=parse_bias(
+            first_value(data, "hill_preference", "hills", default=hill_default),
+            name="Hill preference",
+            minimum=-1.0,
+            maximum=1.0,
+        ),
+    )
+
+
+def parse_planning_request(
+    data: dict,
+    *,
+    profile_default: str = "foot-walking",
+    target_distance_default: float = 6.0,
+    start_radius_default: float = 1.5,
+    max_candidates_default: int = 3,
+    seed_count_default: int = 1,
+    start_limit_default: int = 3,
+    pavement_default: float = 0.8,
+    quiet_default: float = 0.8,
+    green_default: float = 0.7,
+    hill_default: float = 0.0,
+) -> PlanningRequest:
+    return PlanningRequest(
+        center=parse_coord(first_value(data, "center_coord", "center", default="")),
+        profile=str(first_value(data, "profile", default=profile_default)),
+        target_distance_miles=parse_positive_float(
+            first_value(
+                data,
+                "target_distance_miles",
+                "miles",
+                default=target_distance_default,
+            ),
+            name="Target distance",
+            minimum=0.1,
+        ),
+        start_radius_miles=parse_positive_float(
+            first_value(
+                data,
+                "start_radius_miles",
+                "radius",
+                default=start_radius_default,
+            ),
+            name="Start radius",
+            minimum=0.0,
+        ),
+        max_candidates=int(
+            parse_positive_float(
+                first_value(data, "max_candidates", default=max_candidates_default),
+                name="Max candidates",
+                minimum=1.0,
+            )
+        ),
+        seed_count=int(
+            parse_positive_float(
+                first_value(data, "seed_count", default=seed_count_default),
+                name="Seed count",
+                minimum=1.0,
+            )
+        ),
+        start_limit=int(
+            parse_positive_float(
+                first_value(data, "start_limit", default=start_limit_default),
+                name="Start limit",
+                minimum=1.0,
+            )
+        ),
+        preferences=parse_preferences(
+            data,
+            pavement_default=pavement_default,
+            quiet_default=quiet_default,
+            green_default=green_default,
+            hill_default=hill_default,
+        ),
+        design_brief=str(first_value(data, "design_brief", "brief", default="")).strip(),
+    )
 
 
 def miles_to_meters(miles: float) -> float:

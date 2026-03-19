@@ -15,15 +15,13 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from run_router.env import load_env_file
 from run_router.service import (
-    LoopPreferenceProfile,
+    PlanningRequest,
     RouteError,
     build_loop_candidates,
+    first_value,
     maybe_apply_llm_preferences,
     meters_to_feet,
-    miles_to_meters,
-    parse_bias,
-    parse_coord,
-    parse_positive_float,
+    parse_planning_request,
 )
 
 
@@ -105,74 +103,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     return parser
 
-
-def first_value(payload: dict, *names: str, default=None):
-    for name in names:
-        if name in payload:
-            return payload[name]
-    return default
-
-
-def build_preferences(payload: dict) -> LoopPreferenceProfile:
-    return LoopPreferenceProfile(
-        pavement_preference=parse_bias(
-            first_value(payload, "pavement_preference", "pavement", default=0.8),
-            name="Pavement preference",
-        ),
-        quiet_preference=parse_bias(
-            first_value(payload, "quiet_preference", "quiet", default=0.8),
-            name="Quiet preference",
-        ),
-        green_preference=parse_bias(
-            first_value(payload, "green_preference", "green", default=0.7),
-            name="Green preference",
-        ),
-        hill_preference=parse_bias(
-            first_value(payload, "hill_preference", "hills", default=0.0),
-            name="Hill preference",
-            minimum=-1.0,
-            maximum=1.0,
-        ),
+def build_request(payload: dict) -> PlanningRequest:
+    return parse_planning_request(
+        payload,
+        target_distance_default=3.0,
+        start_radius_default=0.2,
+        max_candidates_default=3,
+        seed_count_default=3,
+        start_limit_default=4,
     )
 
 
 def build_loop_response(payload: dict) -> dict:
-    center = parse_coord(first_value(payload, "center_coord", "center", default=""))
-    profile = first_value(payload, "profile", default="foot-walking")
-    target_distance_miles = parse_positive_float(
-        first_value(payload, "target_distance_miles", "miles", default=3.0),
-        name="Target distance",
-        minimum=0.1,
-    )
-    start_radius_miles = parse_positive_float(
-        first_value(payload, "start_radius_miles", "radius", default=0.2),
-        name="Start radius",
-        minimum=0.0,
-    )
-    max_candidates = int(
-        parse_positive_float(
-            first_value(payload, "max_candidates", default=3),
-            name="Max candidates",
-            minimum=1.0,
-        )
-    )
-    seed_count = int(
-        parse_positive_float(
-            first_value(payload, "seed_count", default=3),
-            name="Seed count",
-            minimum=1.0,
-        )
-    )
-    start_limit = int(
-        parse_positive_float(
-            first_value(payload, "start_limit", default=4),
-            name="Start limit",
-            minimum=1.0,
-        )
-    )
-
-    base_preferences = build_preferences(payload)
-    design_brief = str(first_value(payload, "design_brief", "brief", default="")).strip()
+    request = build_request(payload)
 
     import os
 
@@ -181,40 +124,40 @@ def build_loop_response(payload: dict) -> dict:
         raise RouteError("Missing ORS_API_KEY.")
 
     llm_hint = maybe_apply_llm_preferences(
-        design_brief=design_brief,
-        base_preferences=base_preferences,
+        design_brief=request.design_brief,
+        base_preferences=request.preferences,
     )
-    effective_preferences = llm_hint.preferences if llm_hint else base_preferences
+    effective_preferences = llm_hint.preferences if llm_hint else request.preferences
 
     candidates = build_loop_candidates(
         api_key=api_key,
-        center=center,
-        start_radius_m=miles_to_meters(start_radius_miles),
-        target_distance_m=miles_to_meters(target_distance_miles),
-        profile=profile,
+        center=request.center,
+        start_radius_m=request.start_radius_m,
+        target_distance_m=request.target_distance_m,
+        profile=request.profile,
         preferences=effective_preferences,
-        max_candidates=max_candidates,
-        seed_count=seed_count,
-        start_limit=start_limit,
+        max_candidates=request.max_candidates,
+        seed_count=request.seed_count,
+        start_limit=request.start_limit,
     )
 
     return {
         "request_debug": {
-            "center_coord": f"{center[0]},{center[1]}",
-            "profile": profile,
-            "target_distance_miles": target_distance_miles,
-            "start_radius_miles": start_radius_miles,
-            "max_candidates": max_candidates,
-            "seed_count": seed_count,
-            "start_limit": start_limit,
-            "base_preferences": base_preferences.__dict__,
+            "center_coord": f"{request.center[0]},{request.center[1]}",
+            "profile": request.profile,
+            "target_distance_miles": request.target_distance_miles,
+            "start_radius_miles": request.start_radius_miles,
+            "max_candidates": request.max_candidates,
+            "seed_count": request.seed_count,
+            "start_limit": request.start_limit,
+            "base_preferences": request.preferences.__dict__,
             "effective_preferences": effective_preferences.__dict__,
-            "design_brief": design_brief,
+            "design_brief": request.design_brief,
         },
-        "center": center,
-        "profile": profile,
-        "target_distance_miles": target_distance_miles,
-        "start_radius_miles": start_radius_miles,
+        "center": request.center,
+        "profile": request.profile,
+        "target_distance_miles": request.target_distance_miles,
+        "start_radius_miles": request.start_radius_miles,
         "effective_preferences": effective_preferences.__dict__,
         "llm_summary": llm_hint.summary if llm_hint else None,
         "candidates": [
