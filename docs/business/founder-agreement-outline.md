@@ -63,7 +63,7 @@ Specify:
 - what categories are approved
 
 Recommended budget categories:
-- founder compensation
+- developer pay
 - hosting and software tools
 - Apple developer and distribution fees
 - marketing and launch basics
@@ -82,11 +82,11 @@ Also specify:
 ## 8. Subscriber Bonuses
 
 Specify:
-- `$5,000` at `100 activated subscribers`
-- `$10,000` at `1,000 activated subscribers`
+- `$5,000` at `100 activated users`
+- `$10,000` at `1,000 activated users`
 
 Define:
-- what counts as an activated subscriber
+- what counts as an activated user
 - who confirms the milestone
 - how quickly the bonus is paid
 
@@ -160,7 +160,7 @@ Define:
 State the intended build-phase goals:
 - web planner MVP
 - iPhone MVP
-- launch-ready subscriber test
+- launch-ready activation test
 
 These should be framed as business goals, not guaranteed outcomes.
 
@@ -195,7 +195,7 @@ Define standard confidentiality obligations for:
 - source code
 - designs
 - business plans
-- subscriber and product data
+- user and product data
 
 ## 19. Founder Authority
 

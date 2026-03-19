@@ -10,7 +10,7 @@ The goal is to answer:
 - how RouteScout should launch
 - what order the growth steps should happen in
 - how pricing and beta should work
-- how subscriber milestones should be defined
+- how user and customer milestones should be defined
 
 ## Recommendation Summary
 
@@ -181,22 +181,22 @@ Reason:
 If a shorter offer is preferred, the fallback is:
 - `3 months free`
 
-## Subscriber Milestone Definitions
+## User And Customer Milestone Definitions
 
 Milestones should be defined clearly.
 
-### Activated Subscriber
+### Activated User
 
-An activated subscriber is a user who:
+An activated user is a user who:
 - starts a subscription trial, paid subscription, or beta offer-code subscription
 - completes onboarding
 - uses the product meaningfully at least once
 
 This is the right milestone definition for the first bonus.
 
-### Paying Subscriber
+### Paying Customer
 
-A paying subscriber is a user whose subscription has converted to billing.
+A paying customer is a user whose subscription has converted to billing.
 
 This should be tracked as a core business KPI even if it is not the milestone trigger.
 
@@ -204,12 +204,12 @@ This should be tracked as a core business KPI even if it is not the milestone tr
 
 If the founder goal is to tie compensation to concrete traction while still counting trials:
 
-- `$5,000` bonus at `100 activated subscribers`
-- `$10,000` bonus at `1,000 activated subscribers`
+- `$5,000` bonus at `100 activated users`
+- `$10,000` bonus at `1,000 activated users`
 
 Reporting should still separate:
-- activated subscribers
-- paying subscribers
+- activated users
+- paying customers
 - current trial users
 - churned users
 
@@ -233,6 +233,5 @@ group, improve it, then build and release the iPhone MVP through beta before we 
 growth. I want us to keep marketing disciplined: light founder-led promotion first, then a soft
 launch, then a bigger push only after reliability and reviews are strong. For pricing, I think we
 should be cheap and easy to try, like $4.99 per month with a launch intro offer. For milestone
-bonuses, I think we should define them around activated subscribers so early traction counts,
+bonuses, I think we should define them around activated users so early traction counts,
 instead of pretending only fully paid users matter at the very beginning."
-

@@ -235,14 +235,14 @@ The right response is:
 - ship the web planner fast
 - get the iPhone MVP running quickly after
 - test demand early
-- keep founder compensation explicit
+- keep developer pay explicit
 
 ## Three-Month Objective
 
 The next 3 months should aim to prove:
 - the product can ship
 - the product can attract early users
-- the product can convert some users into paying subscribers
+- the product can convert some users into paying customers
 - the product is worth continuing to invest in
 
 That is a much better near-term business target than trying to perfect the whole company story
@@ -253,7 +253,7 @@ before launch.
 The immediate business goal should be:
 - get the planner web app up quickly
 - build the iPhone MVP in the following weeks
-- establish the first paid subscriber base
+- establish the first paid customer base
 - create a strong premium brand presence
 
 ## Recommended Founder Conversation

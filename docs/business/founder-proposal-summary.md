@@ -49,7 +49,7 @@ So the next phase is execution, not vague ideation.
 - working web planner MVP
 - saved plans and route generation
 - iPhone MVP
-- early launch and subscriber testing
+- early launch and activation testing
 
 ### Compensation
 
@@ -61,10 +61,10 @@ Total:
 
 ### Bonuses
 
-- `$5,000` at `100 activated subscribers`
-- `$10,000` at `1,000 activated subscribers`
+- `$5,000` at `100 activated users`
+- `$10,000` at `1,000 activated users`
 
-Activated subscriber definition:
+Activated user definition:
 - a user who starts a trial, paid subscription, or beta offer and actually uses the product
 
 ## Founder Role Split
@@ -91,7 +91,7 @@ The execution burden is not evenly split.
 So the proposal is:
 - keep equity as-is for now
 - add a modest paid build phase
-- tie additional upside to subscriber milestones
+- tie additional upside to activation milestones
 
 That is a practical way to handle a 50/50 company when one founder is carrying most of the
 execution work in the near term.
@@ -103,8 +103,9 @@ Approve:
 1. a `12-week` build phase
 2. `$1,000/week` during that phase
 3. the milestone bonus structure
-4. at least `$15,000` funded into the LLC to start cleanly
-5. a checkpoint at the end of the 12 weeks to decide what happens next
+4. a full funding commitment of `$42,000` through release and `1,000` activated users
+5. an initial deposit of at least `$15,000` into the LLC to start cleanly
+6. a checkpoint at the end of the 12 weeks to decide what happens next
 
 ## Next Decision After 12 Weeks
 

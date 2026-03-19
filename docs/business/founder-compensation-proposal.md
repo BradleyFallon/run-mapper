@@ -1,4 +1,4 @@
-# RouteScout Founder Compensation Proposal
+# RouteScout Developer Pay Proposal
 
 ## Purpose
 
@@ -29,16 +29,16 @@ That means the labor split is not currently equivalent, even if equity is curren
 
 ## Proposal Summary
 
-Requested near-term compensation:
+Requested developer pay:
 - `$1,000/week`
 - for `12 weeks`
 
 Total:
 - `$12,000`
 
-Requested milestone bonuses:
-- `$5,000` at `100 activated subscribers`
-- `$10,000` at `1,000 activated subscribers`
+Requested developer bonuses:
+- `$5,000` at `100 activated users`
+- `$10,000` at `1,000 activated users`
 
 ## Why Up-Front Compensation Is Reasonable
 
@@ -56,7 +56,7 @@ This weekly amount should be understood as:
 
 The milestone bonuses are good because:
 - they tie extra compensation to traction
-- they align incentives with subscriber growth
+- they align incentives with user growth
 - they reduce the need to push for a larger guaranteed weekly amount
 - they make the proposal more business-oriented instead of purely salary-oriented
 
@@ -103,7 +103,7 @@ In the founder conversation, keep the case simple:
 2. that build phase depends heavily on your labor
 3. the labor load is materially larger on your side
 4. a modest weekly payment is fair and practical
-5. subscriber bonuses keep incentives aligned
+5. developer bonuses keep incentives aligned
 
 ## Suggested Proposal Language
 
@@ -112,7 +112,7 @@ Use language like:
 "For the next 12 weeks, I want to lead product, design, engineering, and launch execution and get
 the planner live first, then the iPhone MVP. Since I’m carrying most of the execution work, I want
 to be paid $1,000 per week during that build window. I also want milestone bonuses of $5,000 at
-100 activated subscribers and $10,000 at 1,000 activated subscribers so the upside stays tied to
+100 activated users and $10,000 at 1,000 activated users so the upside stays tied to
 real traction."
 
 That is clear and reasonable.

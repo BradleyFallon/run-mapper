@@ -91,18 +91,18 @@ Focus:
 
 Deliverables:
 - public-ready MVP
-- initial subscriber test
+- initial activation test
 - traction metrics for the next funding or strategic decision
 
 ## Budget Proposal
 
-### Founder Build Compensation
+### Developer Pay
 
 Requested compensation:
 - `$1,000/week`
 - for `12 weeks`
 
-Total requested build compensation:
+Total requested developer pay:
 - `$12,000`
 
 Purpose:
@@ -112,8 +112,8 @@ Purpose:
 ### Performance Bonuses
 
 Requested milestone bonuses:
-- `$5,000` at `100 activated subscribers`
-- `$10,000` at `1,000 activated subscribers`
+- `$5,000` at `100 activated users`
+- `$10,000` at `1,000 activated users`
 
 Purpose:
 - tie upside to traction
@@ -162,12 +162,12 @@ Recommended founder proposal:
 1. approve a `12-week` build window
 2. approve `$1,000/week` during that period
 3. approve milestone bonuses at:
-   - `100 activated subscribers`
-   - `1,000 activated subscribers`
+   - `100 activated users`
+   - `1,000 activated users`
 4. reassess after the 12-week window based on:
    - shipped product
    - user traction
-   - subscriber count
+   - paying customer count
    - strategic interest
 
 ## Decision Points
@@ -199,6 +199,6 @@ Proposed near-term deal:
 - `$1,000/week`
 - web planner up first
 - iPhone MVP during the same window
-- `$5,000` bonus at `100 activated subscribers`
-- `$10,000` bonus at `1,000 activated subscribers`
+- `$5,000` bonus at `100 activated users`
+- `$10,000` bonus at `1,000 activated users`
 - reassess after the initial build phase

@@ -28,27 +28,37 @@ Authorize a defined `12-week` build phase to ship:
 
 ## Recommended Funding Structure
 
-### Minimum Initial Funding
+### Full Funding Commitment
+
+Recommended full funding commitment:
+- `$42,000`
+
+This reflects the actual plan through:
+- build
+- launch
+- early growth
+- developer bonuses through `1,000` activated users
+
+### Minimum Initial Deposit
 
 Recommended minimum LLC bank account funding before the build phase starts:
-- `Option A: $12,000`
-  Covers only the proposed 12 weeks of founder build compensation.
-- `Option B: $15,000` recommended
-  Covers compensation plus modest tools, hosting, App Store, and incidental costs.
-- `Option C: $18,000`
-  Gives more operating cushion.
+- `$15,000`
 
 Recommended founder proposal:
-- ask for `at least $15,000` to be deposited into the LLC bank account before the build phase begins
+- ask for the full `$42,000` funding commitment
+- require at least `$15,000` to be deposited into the LLC bank account before the build phase
+  begins
 
 Reason:
 - your requested compensation alone totals `$12,000`
 - the company should not run the build phase with no operating buffer
+- if the full amount is not funded immediately, the remaining amount should still be contractually
+  committed
 
 ## Budget Use
 
 The initial funded budget should be earmarked for:
-- founder build compensation
+- developer pay
 - software tools
 - hosting / infrastructure
 - design assets and operating costs
@@ -75,16 +85,16 @@ Payment terms:
 ## Milestone Bonuses
 
 Requested bonuses:
-- `$5,000` when the product reaches `100 activated subscribers`
-- `$10,000` when the product reaches `1,000 activated subscribers`
+- `$5,000` when the product reaches `100 activated users`
+- `$10,000` when the product reaches `1,000 activated users`
 
 The agreement should define:
-- what counts as an activated subscriber
+- what counts as an activated user
 - what date the milestone is measured
 - how quickly the bonus must be paid after the milestone is verified
 
 Recommended definition:
-- an activated subscriber is a user who starts a trial, paid subscription, or beta offer and
+- an activated user is a user who starts a trial, paid subscription, or beta offer and
   actually uses the product
 
 ## Founder Roles
@@ -187,7 +197,7 @@ Initial term:
 Deliverables during that term:
 - web planner MVP
 - iPhone MVP
-- launch and early subscriber testing
+- launch and early activation testing
 
 ## Termination Logic
 
@@ -204,28 +214,29 @@ Recommended protection:
 ## Subscriber Bonus Definitions
 
 The contract should define:
-- what counts as a subscriber
+- what counts as an activated user
 - whether trial users count
 - whether refunded users count
 - whether annual and monthly users both count
 
 Recommended simple definition:
-- an activated subscriber is a user who starts a trial, paid subscription, or beta offer and
+- an activated user is a user who starts a trial, paid subscription, or beta offer and
   actually uses the product
 
 Recommended reporting:
-- report activated subscribers separately from paying subscribers
+- report activated users separately from paying customers
 
 ## Recommended Negotiation Position
 
 Your clean founder position is:
 
 1. approve a 12-week build phase
-2. fund the LLC with at least `$15,000`
-3. pay `$1,000/week` during the build phase
-4. approve the subscriber milestone bonuses
-5. keep pre-existing IP with the creator
-6. assign newly created project IP to the LLC only after the agreed funding and payment conditions
+2. commit the full `$42,000` funding plan
+3. fund the LLC with at least `$15,000` immediately
+4. pay `$1,000/week` during the build phase
+5. approve the developer bonus milestones
+6. keep pre-existing IP with the creator
+7. assign newly created project IP to the LLC only after the agreed funding and payment conditions
    are satisfied
 
 ## Important Note
