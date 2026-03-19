@@ -33,11 +33,11 @@ The UI should avoid:
 ## Theme Model
 
 Default theme:
-- dark theme
+- dark theme with a subtle plum cast
 
 Design intent:
-- near-black backgrounds
-- layered charcoal surfaces
+- near-black backgrounds with a faint violet undertone
+- layered charcoal-plum surfaces
 - bright, readable typography
 - a single restrained accent family
 
@@ -48,27 +48,28 @@ The app should look premium in low-light environments and early-morning usage co
 ### Core Neutrals
 
 Primary background:
-- `bg.canvas = #050607`
+- `bg.canvas = #07050A`
 
 Secondary background:
-- `bg.base = #0B0D0F`
+- `bg.base = #0D0A12`
 
 Primary surface:
-- `surface.default = #111417`
+- `surface.default = #15121A`
 
 Secondary surface:
-- `surface.raised = #171B1F`
+- `surface.raised = #1B1721`
 
 Tertiary surface:
-- `surface.overlay = #1D2227`
+- `surface.overlay = #221D29`
 
 Strong divider:
-- `border.strong = #2A3138`
+- `border.strong = #342D3E`
 
 Soft divider:
-- `border.subtle = #1E242A`
+- `border.subtle = #28212F`
 
-These neutrals should create depth through layering, not through obvious gradients.
+These neutrals should create depth through layering, not through obvious gradients. The purple cast
+should stay subtle enough that the product still reads as near-black first.
 
 ### Text Colors
 
