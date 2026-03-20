@@ -3,6 +3,8 @@ import unittest
 from run_router.service import (
     RouteError,
     LoopCandidate,
+    PRIORITY_OPTIONS,
+    aggregate_candidate_score,
     build_candidate_summary,
     parse_planning_request,
     compute_elevation_stats,
@@ -92,6 +94,8 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(request.seed_count, 2)
         self.assertEqual(request.start_limit, 4)
         self.assertEqual(request.seed_offset, 100)
+        self.assertEqual(request.top_priority, "Distance accuracy")
+        self.assertEqual(request.secondary_priority, "Closer start")
         self.assertEqual(request.preferences.pavement_preference, 0.9)
         self.assertEqual(request.design_brief, "Easy nearby loop.")
 
@@ -112,6 +116,21 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(request.seed_count, 3)
         self.assertEqual(request.start_limit, 4)
         self.assertEqual(request.seed_offset, 0)
+        self.assertEqual(request.top_priority, "Distance accuracy")
+        self.assertEqual(request.secondary_priority, "Closer start")
+
+    def test_parse_planning_request_rejects_unknown_priority(self):
+        with self.assertRaises(RouteError):
+            parse_planning_request(
+                {
+                    "center_coord": "-122.6765,45.5236",
+                    "top_priority": "Totally made up",
+                }
+            )
+
+    def test_priority_options_include_expected_values(self):
+        self.assertIn("Distance accuracy", PRIORITY_OPTIONS)
+        self.assertIn("Simple navigation", PRIORITY_OPTIONS)
 
     def test_derive_route_traits_reports_surface_and_loop_shape(self):
         route = self.make_route_result(
@@ -244,6 +263,46 @@ class ServiceTests(unittest.TestCase):
         self.assertGreaterEqual(len(summary.top_reasons), 2)
         self.assertIn("start proximity", summary.top_reasons)
         self.assertTrue(any("paved" in item.lower() for item in summary.strengths))
+
+    def test_aggregate_candidate_score_changes_with_priorities(self):
+        route = self.make_route_result(
+            extras={
+                "surface": {"summary": [{"value": 1, "distance": 6000.0}]},
+                "waytype": {"summary": [{"value": 3, "distance": 6000.0}]},
+            },
+            ascent_m=260.0,
+        )
+        score_breakdown = {
+            "distance": 0.9,
+            "pavement": 0.9,
+            "quiet": 0.4,
+            "green": 0.3,
+            "hills": 0.92,
+            "start": 0.6,
+        }
+        traits = derive_route_traits(
+            route=route,
+            score_breakdown=score_breakdown,
+            start_offset_m=120.0,
+            start_radius_m=300.0,
+        )
+
+        hill_score, hill_breakdown = aggregate_candidate_score(
+            traits=traits,
+            score_breakdown=score_breakdown,
+            top_priority="Elevation profile",
+            secondary_priority="Distance accuracy",
+        )
+        start_score, start_breakdown = aggregate_candidate_score(
+            traits=traits,
+            score_breakdown=score_breakdown,
+            top_priority="Closer start",
+            secondary_priority="Distance accuracy",
+        )
+
+        self.assertGreater(hill_breakdown["hill_fit"], start_breakdown["hill_fit"])
+        self.assertGreater(start_breakdown["start_convenience"], hill_breakdown["start_convenience"])
+        self.assertNotEqual(hill_score, start_score)
 
 
 if __name__ == "__main__":

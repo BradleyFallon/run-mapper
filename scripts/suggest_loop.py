@@ -115,9 +115,12 @@ def main() -> int:
             target_distance_m=request.target_distance_m,
             profile=request.profile,
             preferences=effective_preferences,
+            top_priority=request.top_priority,
+            secondary_priority=request.secondary_priority,
             max_candidates=request.max_candidates,
             seed_count=request.seed_count,
             start_limit=request.start_limit,
+            seed_offset=request.seed_offset,
         )
     except RouteError as exc:
         print(f"Error: {exc}", file=sys.stderr)
@@ -128,6 +131,8 @@ def main() -> int:
             "center": request.center,
             "profile": request.profile,
             "target_distance_miles": request.target_distance_miles,
+            "top_priority": request.top_priority,
+            "secondary_priority": request.secondary_priority,
             "effective_preferences": effective_preferences.__dict__,
             "llm_summary": llm_hint.summary if llm_hint else None,
             "candidates": [
@@ -165,6 +170,9 @@ def main() -> int:
         print(f"Center: {request.center[0]:.5f},{request.center[1]:.5f}")
         print(f"Profile: {request.profile}")
         print(f"Target distance: {request.target_distance_miles:.2f} mi")
+        print(f"Top priority: {request.top_priority}")
+        if request.secondary_priority:
+            print(f"Secondary priority: {request.secondary_priority}")
         print(
             "Preferences: "
             f"pavement={effective_preferences.pavement_preference:.2f}, "

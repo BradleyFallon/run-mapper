@@ -647,6 +647,16 @@
 
           <section class="surface">
             <h2>Priorities</h2>
+            <div class="grid-2">
+              <div class="field">
+                <label for="topPriority">Top priority</label>
+                <select id="topPriority"></select>
+              </div>
+              <div class="field">
+                <label for="secondaryPriority">Secondary priority</label>
+                <select id="secondaryPriority"></select>
+              </div>
+            </div>
             <div class="field">
               <label for="pavement">Pavement</label>
               <input id="pavement" type="range" min="0" max="1" step="0.05" value="0.8" />
@@ -779,6 +789,8 @@
       const specNameEl = document.getElementById("specName");
       const specCodeEl = document.getElementById("specCode");
       const specSnapshotEl = document.getElementById("specSnapshot");
+      const topPriorityEl = document.getElementById("topPriority");
+      const secondaryPriorityEl = document.getElementById("secondaryPriority");
       const latEl = document.getElementById("lat");
       const lonEl = document.getElementById("lon");
       const radiusEl = document.getElementById("radius");
@@ -797,6 +809,7 @@
       let currentCandidates = [];
       let selectedIndex = 0;
       let planPresets = {};
+      let priorityOptions = [];
       let generationCounter = 0;
       let activeGenerationId = null;
       let generationHistory = [];
@@ -871,13 +884,31 @@
           .join("");
       }
 
+      function fillPrioritySelect(selectEl, options, { allowEmpty = false } = {}) {
+        selectEl.innerHTML = "";
+        if (allowEmpty) {
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = "None";
+          selectEl.appendChild(option);
+        }
+        options.forEach((name) => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          selectEl.appendChild(option);
+        });
+      }
+
       function renderSpecHeader(planKey = "") {
         const plan = planPresets[planKey];
+        const activeTop = topPriorityEl.value || plan?.top_priority || "Distance accuracy";
+        const activeSecondary = secondaryPriorityEl.value || plan?.secondary_priority || "";
         if (!plan) {
           specNameEl.textContent = "Custom Spec";
           specCodeEl.textContent = "CUSTOM";
           planMetaEl.textContent = "Custom plan. Adjust fields directly.";
-          priorityMetaEl.textContent = "Top priority and secondary priority are inferred from your sliders and brief.";
+          priorityMetaEl.textContent = `Top priority: ${activeTop} · Secondary: ${activeSecondary || "None"}`;
           renderPriorityPills(null);
           return;
         }
@@ -886,7 +917,7 @@
         specCodeEl.textContent = plan.category.toUpperCase();
         planMetaEl.textContent = `${plan.category} plan tuned for ${plan.design_brief.toLowerCase()}`;
         priorityMetaEl.textContent =
-          `Top priority: ${plan.top_priority} · Secondary: ${plan.secondary_priority} · Support: ${plan.supporting_trait}`;
+          `Top priority: ${activeTop} · Secondary: ${activeSecondary || "None"} · Support: ${plan.supporting_trait}`;
         renderPriorityPills(plan);
       }
 
@@ -913,6 +944,7 @@
               <strong>${entry.label}</strong>
               <div class="meta">${entry.planLabel} · ${entry.topSummary || "No summary"}</div>
               <div class="meta">${entry.topDistance}</div>
+              <div class="meta">Top: ${entry.topPriority || "Distance accuracy"}${entry.secondaryPriority ? ` · Secondary: ${entry.secondaryPriority}` : ""}</div>
             `;
             card.addEventListener("click", () => restoreGeneration(entry.id));
             compareSetsEl.appendChild(card);
@@ -942,7 +974,7 @@
           return;
         }
         debugMetaEl.textContent =
-          `center=${info.center_coord} | profile=${info.profile} | miles=${info.target_distance_miles} | radius=${info.start_radius_miles} | maxCandidates=${info.max_candidates} | seedCount=${info.seed_count} | seedOffset=${info.seed_offset} | pavement=${info.effective_preferences.pavement_preference.toFixed(2)} | quiet=${info.effective_preferences.quiet_preference.toFixed(2)} | green=${info.effective_preferences.green_preference.toFixed(2)} | hills=${info.effective_preferences.hill_preference.toFixed(2)}`;
+          `center=${info.center_coord} | profile=${info.profile} | miles=${info.target_distance_miles} | radius=${info.start_radius_miles} | top=${info.top_priority} | secondary=${info.secondary_priority || "None"} | maxCandidates=${info.max_candidates} | seedCount=${info.seed_count} | seedOffset=${info.seed_offset} | pavement=${info.effective_preferences.pavement_preference.toFixed(2)} | quiet=${info.effective_preferences.quiet_preference.toFixed(2)} | green=${info.effective_preferences.green_preference.toFixed(2)} | hills=${info.effective_preferences.hill_preference.toFixed(2)}`;
       }
 
       function drawGeneration(entry) {
@@ -973,6 +1005,8 @@
         document.getElementById("green").value = plan.green_preference;
         document.getElementById("hills").value = plan.hill_preference;
         document.getElementById("brief").value = plan.design_brief || "";
+        topPriorityEl.value = plan.top_priority || "Distance accuracy";
+        secondaryPriorityEl.value = plan.secondary_priority || "";
         renderSpecHeader(key);
         updateCenterVisuals();
       }
@@ -981,6 +1015,9 @@
         const response = await fetch("/api/plans");
         const data = await response.json();
         planPresets = data.plans || {};
+        priorityOptions = data.priorities || [];
+        fillPrioritySelect(topPriorityEl, priorityOptions);
+        fillPrioritySelect(secondaryPriorityEl, priorityOptions, { allowEmpty: true });
         Object.entries(planPresets).forEach(([key, plan]) => {
           const option = document.createElement("option");
           option.value = key;
@@ -1009,6 +1046,18 @@
                 <span>${value.toFixed(2)}</span>
               </div>
               <div class="bar"><span style="width: ${Math.max(6, value * 100)}%"></span></div>
+            </div>
+          `)
+          .join("");
+        const rankingRows = Object.entries(candidate.ranking_breakdown || {})
+          .sort((a, b) => b[1] - a[1])
+          .map(([name, value]) => `
+            <div class="breakdown-row">
+              <div class="breakdown-head">
+                <span>${name}</span>
+                <span>${value.toFixed(3)}</span>
+              </div>
+              <div class="bar"><span style="width: ${Math.max(6, value * 200)}%"></span></div>
             </div>
           `)
           .join("");
@@ -1044,6 +1093,7 @@
             <h2>${summary?.headline || "Balanced route recommendation"}</h2>
             <div class="reasons-row" style="margin-top: 12px;">${reasons}</div>
             <div class="meta">Score ${candidate.score.toFixed(3)} · start ${candidate.start_offset_miles.toFixed(2)} mi from requested point</div>
+            <div class="meta" style="margin-top: 8px;">Priority-weighted for top ${topPriorityEl.value || "Distance accuracy"}${secondaryPriorityEl.value ? ` and secondary ${secondaryPriorityEl.value}` : ""}.</div>
           </div>
 
           <div class="stat-grid">
@@ -1088,6 +1138,11 @@
           <div>
             <h3 style="margin-bottom: 10px;">Score Breakdown</h3>
             <div class="breakdown-list">${breakdownRows}</div>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 10px;">Priority-Weighted Ranking</h3>
+            <div class="breakdown-list">${rankingRows || "<div class=\"meta\">No ranking detail available.</div>"}</div>
           </div>
 
           <div>
@@ -1216,6 +1271,8 @@
           quiet_preference: parseFloat(document.getElementById("quiet").value),
           green_preference: parseFloat(document.getElementById("green").value),
           hill_preference: parseFloat(document.getElementById("hills").value),
+          top_priority: topPriorityEl.value,
+          secondary_priority: secondaryPriorityEl.value,
           design_brief: document.getElementById("brief").value.trim(),
           seed_offset: reroll ? generationCounter * 100 : 0,
         };
@@ -1237,6 +1294,8 @@
             id: generationCounter,
             label: reroll ? `Reroll ${generationCounter}` : `Scout ${generationCounter}`,
             planLabel: currentPlanLabel(),
+            topPriority: data.top_priority,
+            secondaryPriority: data.secondary_priority,
             llmSummary: data.llm_summary,
             candidates: data.candidates,
             topSummary: data.candidates[0]?.summary_text?.headline || "No summary",
@@ -1295,6 +1354,8 @@
       latEl.addEventListener("change", updateCenterVisuals);
       lonEl.addEventListener("change", updateCenterVisuals);
       planPresetEl.addEventListener("change", () => applyPlanPreset(planPresetEl.value));
+      topPriorityEl.addEventListener("change", () => renderSpecHeader(activePlanKey() || ""));
+      secondaryPriorityEl.addEventListener("change", () => renderSpecHeader(activePlanKey() || ""));
       generateBtn.addEventListener("click", () => generateRoutes({ reroll: false }));
       rerollBtn.addEventListener("click", () => generateRoutes({ reroll: true }));
       clearBtn.addEventListener("click", () => {
@@ -1307,7 +1368,11 @@
       });
 
       Promise.resolve(loadPlans())
-        .then(() => renderSpecHeader(""))
+        .then(() => {
+          topPriorityEl.value = "Distance accuracy";
+          secondaryPriorityEl.value = "Closer start";
+          renderSpecHeader("");
+        })
         .catch(() => setStatus("Unable to load starter plans.", true));
 
       renderPriorityPills(null);

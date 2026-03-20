@@ -14,6 +14,19 @@ MILES_TO_METERS = 1609.344
 
 PAVED_SURFACE_IDS = {1, 3, 4, 14}
 TRAIL_WAYTYPE_IDS = {4, 5, 7}
+PRIORITY_OPTIONS = (
+    "Distance accuracy",
+    "Closer start",
+    "Simple navigation",
+    "Paved surface",
+    "Elevation profile",
+    "Landmarks",
+    "Quiet surroundings",
+    "Nature access",
+    "Trail quality",
+    "Low interruptions",
+    "Lighting and confidence",
+)
 
 
 class RouteError(Exception):
@@ -59,6 +72,8 @@ class PlanningRequest:
     seed_count: int
     start_limit: int
     seed_offset: int
+    top_priority: str
+    secondary_priority: str | None
     preferences: LoopPreferenceProfile
     design_brief: str
 
@@ -79,6 +94,7 @@ class LoopCandidate:
     route: RouteResult
     score: float
     score_breakdown: dict[str, float]
+    ranking_breakdown: dict[str, float] | None = None
     traits: "RouteTraits | None" = None
     badges: list["RouteBadge"] | None = None
     summary: "RouteSummary | None" = None
@@ -182,6 +198,22 @@ def parse_bias(value: object, *, name: str, minimum: float = 0.0, maximum: float
     return parsed
 
 
+def parse_priority(
+    value: object,
+    *,
+    name: str,
+    required: bool = True,
+) -> str | None:
+    text = str(value or "").strip()
+    if not text:
+        if required:
+            raise RouteError(f"{name} is required.")
+        return None
+    if text not in PRIORITY_OPTIONS:
+        raise RouteError(f"{name} must be one of: {', '.join(PRIORITY_OPTIONS)}.")
+    return text
+
+
 def first_value(data: dict, *names: str, default=None):
     for name in names:
         if name in data:
@@ -229,6 +261,8 @@ def parse_planning_request(
     seed_count_default: int = 1,
     start_limit_default: int = 3,
     seed_offset_default: int = 0,
+    top_priority_default: str = "Distance accuracy",
+    secondary_priority_default: str | None = "Closer start",
     pavement_default: float = 0.8,
     quiet_default: float = 0.8,
     green_default: float = 0.7,
@@ -284,6 +318,16 @@ def parse_planning_request(
                 name="Seed offset",
                 minimum=0.0,
             )
+        ),
+        top_priority=parse_priority(
+            first_value(data, "top_priority", default=top_priority_default),
+            name="Top priority",
+            required=True,
+        ),
+        secondary_priority=parse_priority(
+            first_value(data, "secondary_priority", default=secondary_priority_default),
+            name="Secondary priority",
+            required=False,
         ),
         preferences=parse_preferences(
             data,
@@ -624,6 +668,83 @@ def derive_route_traits(
     )
 
 
+def dimension_scores_from_traits(
+    score_breakdown: dict[str, float],
+    traits: RouteTraits,
+) -> dict[str, float]:
+    environmental_fit = clamp((traits.quiet_fit * 0.45) + (traits.green_fit * 0.55))
+    return {
+        "distance_fit": score_breakdown.get("distance", 0.5),
+        "start_convenience": score_breakdown.get("start", 0.5),
+        "surface_fit": score_breakdown.get("pavement", 0.5),
+        "hill_fit": score_breakdown.get("hills", 0.5),
+        "environmental_fit": environmental_fit,
+        "route_simplicity": traits.route_simplicity,
+        "discovery_fit": traits.discovery_fit,
+        "training_fit": traits.training_fit,
+        "trail_suitability": traits.trail_suitability,
+    }
+
+
+def priority_weight_map(priority: str) -> dict[str, float]:
+    maps = {
+        "Distance accuracy": {"distance_fit": 1.0},
+        "Closer start": {"start_convenience": 1.0},
+        "Simple navigation": {"route_simplicity": 0.7, "start_convenience": 0.3},
+        "Paved surface": {"surface_fit": 1.0},
+        "Elevation profile": {"hill_fit": 0.65, "training_fit": 0.35},
+        "Landmarks": {"discovery_fit": 1.0},
+        "Quiet surroundings": {"environmental_fit": 1.0},
+        "Nature access": {"discovery_fit": 0.55, "environmental_fit": 0.45},
+        "Trail quality": {"trail_suitability": 0.6, "surface_fit": 0.4},
+        "Low interruptions": {"training_fit": 0.55, "route_simplicity": 0.45},
+        "Lighting and confidence": {
+            "route_simplicity": 0.45,
+            "start_convenience": 0.35,
+            "environmental_fit": 0.2,
+        },
+    }
+    return maps.get(priority, {"distance_fit": 1.0})
+
+
+def aggregate_candidate_score(
+    *,
+    traits: RouteTraits,
+    score_breakdown: dict[str, float],
+    top_priority: str,
+    secondary_priority: str | None,
+) -> tuple[float, dict[str, float]]:
+    dimension_scores = dimension_scores_from_traits(score_breakdown, traits)
+    weights = {
+        "distance_fit": 0.28,
+        "surface_fit": 0.16,
+        "environmental_fit": 0.14,
+        "hill_fit": 0.12,
+        "start_convenience": 0.10,
+        "route_simplicity": 0.08,
+        "discovery_fit": 0.06,
+        "training_fit": 0.04,
+        "trail_suitability": 0.02,
+    }
+
+    for dimension, amount in priority_weight_map(top_priority).items():
+        weights[dimension] = weights.get(dimension, 0.0) + (0.12 * amount)
+
+    if secondary_priority:
+        for dimension, amount in priority_weight_map(secondary_priority).items():
+            weights[dimension] = weights.get(dimension, 0.0) + (0.06 * amount)
+
+    total_weight = sum(weights.values()) or 1.0
+    normalized_weights = {
+        dimension: weight / total_weight for dimension, weight in weights.items()
+    }
+    ranking_breakdown = {
+        dimension: dimension_scores[dimension] * normalized_weights[dimension]
+        for dimension in normalized_weights
+    }
+    return sum(ranking_breakdown.values()), ranking_breakdown
+
+
 def qualifies_nearby(traits: RouteTraits, *, threshold: float = 0.8) -> bool:
     return traits.start_convenience >= threshold
 
@@ -755,8 +876,17 @@ def score_reason_label(name: str, traits: RouteTraits) -> str:
         "quiet": "quietness",
         "green": "green access",
         "hills": "elevation profile",
+        "distance_fit": "distance fit",
+        "start_convenience": "start proximity",
+        "surface_fit": "surface consistency",
+        "hill_fit": "elevation profile",
+        "environmental_fit": "environmental fit",
+        "route_simplicity": "simple navigation",
+        "discovery_fit": "discovery fit",
+        "training_fit": "training value",
+        "trail_suitability": "trail quality",
     }
-    if name != "hills":
+    if name not in {"hills", "hill_fit"}:
         return labels.get(name, name)
     if traits.ascent_ft_per_mi >= 150:
         return "hill profile"
@@ -808,15 +938,12 @@ def build_candidate_summary(candidate: LoopCandidate) -> RouteSummary:
     if traits is None:
         raise RouteError("Cannot summarize a candidate before traits are derived.")
 
-    ranked_reasons = sorted(
-        candidate.score_breakdown.items(),
-        key=lambda item: item[1],
-        reverse=True,
-    )
+    ranking_source = candidate.ranking_breakdown or candidate.score_breakdown
+    ranked_reasons = sorted(ranking_source.items(), key=lambda item: item[1], reverse=True)
     top_reasons = [
         score_reason_label(name, traits)
         for name, value in ranked_reasons
-        if value >= 0.6
+        if value >= 0.05
     ][:3]
     if not top_reasons:
         top_reasons = [score_reason_label(ranked_reasons[0][0], traits)]
@@ -948,6 +1075,8 @@ def build_loop_candidates(
     target_distance_m: float,
     profile: str,
     preferences: LoopPreferenceProfile,
+    top_priority: str = "Distance accuracy",
+    secondary_priority: str | None = "Closer start",
     noise_threshold_m: float = 2.0,
     max_candidates: int = 12,
     seed_count: int = 4,
@@ -1002,7 +1131,7 @@ def build_loop_candidates(
                 last_error = exc
                 continue
 
-            score, score_breakdown = score_loop_candidate(
+            _, score_breakdown = score_loop_candidate(
                 route=route,
                 target_distance_m=target_distance_m,
                 start_offset_m=start_offset_m,
@@ -1016,6 +1145,12 @@ def build_loop_candidates(
                 start_radius_m=start_radius_m,
             )
             badges = derive_route_badges(traits)
+            score, ranking_breakdown = aggregate_candidate_score(
+                traits=traits,
+                score_breakdown=score_breakdown,
+                top_priority=top_priority,
+                secondary_priority=secondary_priority,
+            )
             candidate = LoopCandidate(
                 start_coord=start_coord,
                 start_offset_m=start_offset_m,
@@ -1023,6 +1158,7 @@ def build_loop_candidates(
                 route=route,
                 score=score,
                 score_breakdown=score_breakdown,
+                ranking_breakdown=ranking_breakdown,
                 traits=traits,
                 badges=badges,
             )

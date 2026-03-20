@@ -17,6 +17,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from run_router.env import load_env_file
 from run_router.service import (
     PlanningRequest,
+    PRIORITY_OPTIONS,
     RouteError,
     build_loop_candidates,
     first_value,
@@ -169,6 +170,8 @@ def build_loop_response(payload: dict) -> dict:
         target_distance_m=request.target_distance_m,
         profile=request.profile,
         preferences=effective_preferences,
+        top_priority=request.top_priority,
+        secondary_priority=request.secondary_priority,
         max_candidates=request.max_candidates,
         seed_count=request.seed_count,
         start_limit=request.start_limit,
@@ -185,6 +188,8 @@ def build_loop_response(payload: dict) -> dict:
             "seed_count": request.seed_count,
             "start_limit": request.start_limit,
             "seed_offset": request.seed_offset,
+            "top_priority": request.top_priority,
+            "secondary_priority": request.secondary_priority,
             "base_preferences": request.preferences.__dict__,
             "effective_preferences": effective_preferences.__dict__,
             "design_brief": request.design_brief,
@@ -193,12 +198,15 @@ def build_loop_response(payload: dict) -> dict:
         "profile": request.profile,
         "target_distance_miles": request.target_distance_miles,
         "start_radius_miles": request.start_radius_miles,
+        "top_priority": request.top_priority,
+        "secondary_priority": request.secondary_priority,
         "effective_preferences": effective_preferences.__dict__,
         "llm_summary": llm_hint.summary if llm_hint else None,
         "candidates": [
             {
                 "score": candidate.score,
                 "score_breakdown": candidate.score_breakdown,
+                "ranking_breakdown": candidate.ranking_breakdown,
                 "start_coord": candidate.start_coord,
                 "start_offset_miles": candidate.start_offset_m / 1609.344,
                 "seed": candidate.seed,
@@ -264,7 +272,7 @@ class RouteMapLabHandler(BaseHTTPRequestHandler):
             return
 
         if self.path == "/api/plans":
-            self._send_json(200, {"plans": PLAN_PRESETS})
+            self._send_json(200, {"plans": PLAN_PRESETS, "priorities": PRIORITY_OPTIONS})
             return
 
         if self.path == "/health":
