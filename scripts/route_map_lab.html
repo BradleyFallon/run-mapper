@@ -239,7 +239,8 @@
       .priority-pill-row,
       .stat-grid,
       .badge-row,
-      .reasons-row {
+      .reasons-row,
+      .compare-list {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
@@ -461,6 +462,22 @@
         gap: 12px;
       }
 
+      .compare-list {
+        flex-direction: column;
+      }
+
+      .compare-card {
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+        cursor: pointer;
+      }
+
+      .compare-card.active {
+        border-color: var(--border-strong);
+      }
+
       .candidate-card {
         padding: 14px;
         border: 1px solid var(--border);
@@ -574,6 +591,7 @@
                 <div id="specCode" class="code-chip">CUSTOM</div>
               </div>
               <div id="planMeta" class="meta">Custom plan. Adjust fields directly.</div>
+              <div id="priorityMeta" class="meta" style="margin-top: 10px;"></div>
               <div id="priorityRow" class="priority-pill-row" style="margin-top: 12px;"></div>
             </div>
           </section>
@@ -659,6 +677,7 @@
             </div>
             <div class="button-row">
               <button id="generateBtn" class="primary" type="button">Scout Routes</button>
+              <button id="rerollBtn" class="secondary" type="button">Reroll Candidates</button>
               <button id="clearBtn" type="button">Clear</button>
             </div>
             <div id="status" class="status" style="margin-top: 10px;"></div>
@@ -718,6 +737,13 @@
           </section>
 
           <section class="surface">
+            <h2>Compare Sets</h2>
+            <div id="compareSets" class="compare-list">
+              <div class="candidate-empty">Reroll candidates to compare multiple generated sets.</div>
+            </div>
+          </section>
+
+          <section class="surface">
             <h2>Candidate Routes</h2>
             <div id="llmNote" class="meta" style="margin-bottom: 12px;"></div>
             <div id="candidateList" class="candidate-list">
@@ -747,6 +773,7 @@
       const llmNoteEl = document.getElementById("llmNote");
       const planPresetEl = document.getElementById("planPreset");
       const planMetaEl = document.getElementById("planMeta");
+      const priorityMetaEl = document.getElementById("priorityMeta");
       const debugMetaEl = document.getElementById("debugMeta");
       const priorityRowEl = document.getElementById("priorityRow");
       const specNameEl = document.getElementById("specName");
@@ -758,7 +785,9 @@
       const locateBtn = document.getElementById("locateBtn");
       const dropPinBtn = document.getElementById("dropPinBtn");
       const generateBtn = document.getElementById("generateBtn");
+      const rerollBtn = document.getElementById("rerollBtn");
       const clearBtn = document.getElementById("clearBtn");
+      const compareSetsEl = document.getElementById("compareSets");
 
       let clickToSetStart = false;
       let centerMarker = null;
@@ -768,6 +797,9 @@
       let currentCandidates = [];
       let selectedIndex = 0;
       let planPresets = {};
+      let generationCounter = 0;
+      let activeGenerationId = null;
+      let generationHistory = [];
 
       const routeStyles = [
         { color: "#c4ff5b", weight: 6, opacity: 0.95 },
@@ -782,6 +814,10 @@
         { key: "green_preference", label: "Green", format: value => value.toFixed(2) },
         { key: "hill_preference", label: "Hills", format: value => value.toFixed(2) },
       ];
+
+      function activePlanKey() {
+        return planPresetEl.value;
+      }
 
       function setStatus(message, isError = false) {
         statusEl.textContent = message;
@@ -841,6 +877,7 @@
           specNameEl.textContent = "Custom Spec";
           specCodeEl.textContent = "CUSTOM";
           planMetaEl.textContent = "Custom plan. Adjust fields directly.";
+          priorityMetaEl.textContent = "Top priority and secondary priority are inferred from your sliders and brief.";
           renderPriorityPills(null);
           return;
         }
@@ -848,7 +885,38 @@
         specNameEl.textContent = plan.label;
         specCodeEl.textContent = plan.category.toUpperCase();
         planMetaEl.textContent = `${plan.category} plan tuned for ${plan.design_brief.toLowerCase()}`;
+        priorityMetaEl.textContent =
+          `Top priority: ${plan.top_priority} · Secondary: ${plan.secondary_priority} · Support: ${plan.supporting_trait}`;
         renderPriorityPills(plan);
+      }
+
+      function currentPlanLabel() {
+        const plan = planPresets[activePlanKey()];
+        return plan ? plan.label : "Custom Spec";
+      }
+
+      function renderCompareSets() {
+        if (!generationHistory.length) {
+          compareSetsEl.innerHTML =
+            '<div class="candidate-empty">Reroll candidates to compare multiple generated sets.</div>';
+          return;
+        }
+
+        compareSetsEl.innerHTML = "";
+        generationHistory
+          .slice()
+          .reverse()
+          .forEach((entry) => {
+            const card = document.createElement("div");
+            card.className = "compare-card" + (entry.id === activeGenerationId ? " active" : "");
+            card.innerHTML = `
+              <strong>${entry.label}</strong>
+              <div class="meta">${entry.planLabel} · ${entry.topSummary || "No summary"}</div>
+              <div class="meta">${entry.topDistance}</div>
+            `;
+            card.addEventListener("click", () => restoreGeneration(entry.id));
+            compareSetsEl.appendChild(card);
+          });
       }
 
       function clearRoutes() {
@@ -858,12 +926,14 @@
         startMarkers = [];
         currentCandidates = [];
         selectedIndex = 0;
+        activeGenerationId = null;
         candidateListEl.innerHTML =
           '<div class="candidate-empty">No routes yet. Scout the area to populate the route collection.</div>';
         selectedRouteEl.innerHTML =
           '<div class="route-detail-empty">No route selected yet. Generate candidates and click one to inspect its reasons, features, and stats.</div>';
         llmNoteEl.textContent = "";
         mapRecommendationEl.textContent = "Generate routes to see the recommended loop.";
+        renderCompareSets();
       }
 
       function renderDebug(info) {
@@ -872,7 +942,22 @@
           return;
         }
         debugMetaEl.textContent =
-          `center=${info.center_coord} | profile=${info.profile} | miles=${info.target_distance_miles} | radius=${info.start_radius_miles} | maxCandidates=${info.max_candidates} | seedCount=${info.seed_count} | pavement=${info.effective_preferences.pavement_preference.toFixed(2)} | quiet=${info.effective_preferences.quiet_preference.toFixed(2)} | green=${info.effective_preferences.green_preference.toFixed(2)} | hills=${info.effective_preferences.hill_preference.toFixed(2)}`;
+          `center=${info.center_coord} | profile=${info.profile} | miles=${info.target_distance_miles} | radius=${info.start_radius_miles} | maxCandidates=${info.max_candidates} | seedCount=${info.seed_count} | seedOffset=${info.seed_offset} | pavement=${info.effective_preferences.pavement_preference.toFixed(2)} | quiet=${info.effective_preferences.quiet_preference.toFixed(2)} | green=${info.effective_preferences.green_preference.toFixed(2)} | hills=${info.effective_preferences.hill_preference.toFixed(2)}`;
+      }
+
+      function drawGeneration(entry) {
+        drawCandidates(entry.candidates);
+        renderCandidates(entry.candidates, entry.llmSummary);
+        activeGenerationId = entry.id;
+        focusCandidate(0);
+        renderCompareSets();
+      }
+
+      function restoreGeneration(id) {
+        const entry = generationHistory.find(item => item.id === id);
+        if (!entry) return;
+        drawGeneration(entry);
+        setStatus(`Viewing ${entry.label}.`);
       }
 
       function applyPlanPreset(key) {
@@ -936,6 +1021,22 @@
         const reasons = summary?.top_reasons?.length
           ? summary.top_reasons.map(item => `<span class="reason-pill">${item}</span>`).join("")
           : '<span class="meta">Overall fit</span>';
+        const traits = candidate.traits || {};
+        const traitPills = [
+          traits.paved_ratio != null ? `Paved ${(traits.paved_ratio * 100).toFixed(0)}%` : null,
+          traits.trail_ratio != null ? `Trail ${(traits.trail_ratio * 100).toFixed(0)}%` : null,
+          traits.average_green != null ? `Green ${traits.average_green.toFixed(1)}` : null,
+          traits.average_noise != null ? `Noise ${traits.average_noise.toFixed(1)}` : null,
+          traits.ascent_ft_per_mi != null ? `${traits.ascent_ft_per_mi.toFixed(0)} ft/mi` : null,
+        ].filter(Boolean);
+        const extraSummary = Object.entries(candidate.extra_summary || {})
+          .map(([key, items]) => {
+            const sample = items
+              .map(item => `v${item.value} · ${item.distance_miles.toFixed(2)} mi`)
+              .join(", ");
+            return `<li>${key}: ${sample}</li>`;
+          })
+          .join("");
 
         selectedRouteEl.innerHTML = `
           <div class="detail-hero">
@@ -970,6 +1071,11 @@
           </div>
 
           <div>
+            <h3 style="margin-bottom: 10px;">Derived Traits</h3>
+            <div class="priority-pill-row">${traitPills.map(item => `<span class="pill">${item}</span>`).join("") || '<span class="meta">No derived traits available.</span>'}</div>
+          </div>
+
+          <div>
             <h3 style="margin-bottom: 10px;">Strengths</h3>
             <ul class="strength-list">${strengths}</ul>
           </div>
@@ -982,6 +1088,11 @@
           <div>
             <h3 style="margin-bottom: 10px;">Score Breakdown</h3>
             <div class="breakdown-list">${breakdownRows}</div>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 10px;">Route Evidence</h3>
+            <ul class="tradeoff-list">${extraSummary || "<li>No compact ORS extra summary available.</li>"}</ul>
           </div>
         `;
 
@@ -1079,8 +1190,18 @@
         }
       }
 
-      async function generateRoutes() {
+      function rememberGeneration(entry) {
+        generationHistory = generationHistory.filter(item => item.id !== entry.id);
+        generationHistory.push(entry);
+        generationHistory = generationHistory.slice(-5);
+      }
+
+      async function generateRoutes({ reroll = false } = {}) {
         setStatus("Generating routes...");
+        if (!reroll) {
+          generationHistory = [];
+          activeGenerationId = null;
+        }
         clearRoutes();
         updateCenterVisuals();
 
@@ -1096,6 +1217,7 @@
           green_preference: parseFloat(document.getElementById("green").value),
           hill_preference: parseFloat(document.getElementById("hills").value),
           design_brief: document.getElementById("brief").value.trim(),
+          seed_offset: reroll ? generationCounter * 100 : 0,
         };
 
         try {
@@ -1109,10 +1231,21 @@
             throw new Error(data.error || "Route generation failed.");
           }
 
-          drawCandidates(data.candidates);
-          renderCandidates(data.candidates, data.llm_summary);
           renderDebug(data.request_debug);
-          focusCandidate(0);
+          generationCounter += 1;
+          const entry = {
+            id: generationCounter,
+            label: reroll ? `Reroll ${generationCounter}` : `Scout ${generationCounter}`,
+            planLabel: currentPlanLabel(),
+            llmSummary: data.llm_summary,
+            candidates: data.candidates,
+            topSummary: data.candidates[0]?.summary_text?.headline || "No summary",
+            topDistance: data.candidates[0]
+              ? `${data.candidates[0].summary.distance_miles.toFixed(2)} mi · score ${data.candidates[0].score.toFixed(3)}`
+              : "No route",
+          };
+          rememberGeneration(entry);
+          drawGeneration(entry);
           setStatus(`Generated ${data.candidates.length} candidate routes.`);
         } catch (error) {
           setStatus(error.message || String(error), true);
@@ -1162,8 +1295,11 @@
       latEl.addEventListener("change", updateCenterVisuals);
       lonEl.addEventListener("change", updateCenterVisuals);
       planPresetEl.addEventListener("change", () => applyPlanPreset(planPresetEl.value));
-      generateBtn.addEventListener("click", generateRoutes);
+      generateBtn.addEventListener("click", () => generateRoutes({ reroll: false }));
+      rerollBtn.addEventListener("click", () => generateRoutes({ reroll: true }));
       clearBtn.addEventListener("click", () => {
+        generationHistory = [];
+        generationCounter = 0;
         clearRoutes();
         updateCenterVisuals();
         renderDebug(null);

@@ -5,6 +5,7 @@ import argparse
 import json
 import sys
 import webbrowser
+from dataclasses import asdict
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -37,6 +38,9 @@ PLAN_PRESETS = {
         "category": "Confidence",
         "target_distance_miles": 3.0,
         "start_radius_miles": 0.2,
+        "top_priority": "Lighting and confidence",
+        "secondary_priority": "Simple navigation",
+        "supporting_trait": "Paved surface",
         "pavement_preference": 0.9,
         "quiet_preference": 0.75,
         "green_preference": 0.45,
@@ -48,6 +52,9 @@ PLAN_PRESETS = {
         "category": "Confidence",
         "target_distance_miles": 4.0,
         "start_radius_miles": 0.35,
+        "top_priority": "Closer start",
+        "secondary_priority": "Distance accuracy",
+        "supporting_trait": "Low friction",
         "pavement_preference": 0.75,
         "quiet_preference": 0.55,
         "green_preference": 0.4,
@@ -59,6 +66,9 @@ PLAN_PRESETS = {
         "category": "Explore",
         "target_distance_miles": 5.0,
         "start_radius_miles": 0.5,
+        "top_priority": "Landmarks",
+        "secondary_priority": "Nature access",
+        "supporting_trait": "Memorable city loop",
         "pavement_preference": 0.65,
         "quiet_preference": 0.4,
         "green_preference": 0.75,
@@ -70,6 +80,9 @@ PLAN_PRESETS = {
         "category": "Training",
         "target_distance_miles": 6.0,
         "start_radius_miles": 0.4,
+        "top_priority": "Elevation profile",
+        "secondary_priority": "Distance accuracy",
+        "supporting_trait": "Paved surface",
         "pavement_preference": 0.9,
         "quiet_preference": 0.35,
         "green_preference": 0.35,
@@ -81,6 +94,9 @@ PLAN_PRESETS = {
         "category": "Trail",
         "target_distance_miles": 4.5,
         "start_radius_miles": 0.5,
+        "top_priority": "Trail quality",
+        "secondary_priority": "Simple navigation",
+        "supporting_trait": "Manageable terrain",
         "pavement_preference": 0.25,
         "quiet_preference": 0.7,
         "green_preference": 0.85,
@@ -88,6 +104,22 @@ PLAN_PRESETS = {
         "design_brief": "Trail-forward loop with manageable terrain and good navigational confidence.",
     },
 }
+
+
+def compact_extra_summary(extras: dict) -> dict:
+    summary: dict[str, list[dict[str, float | int]]] = {}
+    for key, node in extras.items():
+        items = (node or {}).get("summary") or []
+        if not items:
+            continue
+        summary[key] = [
+            {
+                "value": int(item.get("value", 0)),
+                "distance_miles": round(float(item.get("distance", 0.0)) / 1609.344, 2),
+            }
+            for item in items[:4]
+        ]
+    return summary
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -111,6 +143,7 @@ def build_request(payload: dict) -> PlanningRequest:
         max_candidates_default=3,
         seed_count_default=3,
         start_limit_default=4,
+        seed_offset_default=0,
     )
 
 
@@ -139,6 +172,7 @@ def build_loop_response(payload: dict) -> dict:
         max_candidates=request.max_candidates,
         seed_count=request.seed_count,
         start_limit=request.start_limit,
+        seed_offset=request.seed_offset,
     )
 
     return {
@@ -150,6 +184,7 @@ def build_loop_response(payload: dict) -> dict:
             "max_candidates": request.max_candidates,
             "seed_count": request.seed_count,
             "start_limit": request.start_limit,
+            "seed_offset": request.seed_offset,
             "base_preferences": request.preferences.__dict__,
             "effective_preferences": effective_preferences.__dict__,
             "design_brief": request.design_brief,
@@ -166,10 +201,13 @@ def build_loop_response(payload: dict) -> dict:
                 "score_breakdown": candidate.score_breakdown,
                 "start_coord": candidate.start_coord,
                 "start_offset_miles": candidate.start_offset_m / 1609.344,
+                "seed": candidate.seed,
                 "badges": [
                     {"code": badge.code, "label": badge.label, "strength": badge.strength}
                     for badge in (candidate.badges or [])
                 ],
+                "traits": asdict(candidate.traits) if candidate.traits else None,
+                "extra_summary": compact_extra_summary(candidate.route.extras),
                 "summary_text": (
                     {
                         "headline": candidate.summary.headline,

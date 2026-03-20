@@ -75,6 +75,7 @@ class ServiceTests(unittest.TestCase):
                 "center": "-122.6765,45.5236",
                 "miles": 4.5,
                 "radius": 0.25,
+                "seed_offset": 100,
                 "pavement": 0.9,
                 "quiet": 0.6,
                 "green": 0.4,
@@ -90,6 +91,7 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(request.start_radius_miles, 0.25)
         self.assertEqual(request.seed_count, 2)
         self.assertEqual(request.start_limit, 4)
+        self.assertEqual(request.seed_offset, 100)
         self.assertEqual(request.preferences.pavement_preference, 0.9)
         self.assertEqual(request.design_brief, "Easy nearby loop.")
 
@@ -109,6 +111,7 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(request.max_candidates, 3)
         self.assertEqual(request.seed_count, 3)
         self.assertEqual(request.start_limit, 4)
+        self.assertEqual(request.seed_offset, 0)
 
     def test_derive_route_traits_reports_surface_and_loop_shape(self):
         route = self.make_route_result(

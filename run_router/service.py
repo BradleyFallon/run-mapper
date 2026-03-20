@@ -58,6 +58,7 @@ class PlanningRequest:
     max_candidates: int
     seed_count: int
     start_limit: int
+    seed_offset: int
     preferences: LoopPreferenceProfile
     design_brief: str
 
@@ -227,6 +228,7 @@ def parse_planning_request(
     max_candidates_default: int = 3,
     seed_count_default: int = 1,
     start_limit_default: int = 3,
+    seed_offset_default: int = 0,
     pavement_default: float = 0.8,
     quiet_default: float = 0.8,
     green_default: float = 0.7,
@@ -274,6 +276,13 @@ def parse_planning_request(
                 first_value(data, "start_limit", default=start_limit_default),
                 name="Start limit",
                 minimum=1.0,
+            )
+        ),
+        seed_offset=int(
+            parse_positive_float(
+                first_value(data, "seed_offset", default=seed_offset_default),
+                name="Seed offset",
+                minimum=0.0,
             )
         ),
         preferences=parse_preferences(
@@ -943,6 +952,7 @@ def build_loop_candidates(
     max_candidates: int = 12,
     seed_count: int = 4,
     start_limit: int | None = None,
+    seed_offset: int = 0,
 ) -> list[LoopCandidate]:
     if profile not in {"foot-walking", "foot-hiking"}:
         raise RouteError("Loop generation currently supports foot-walking and foot-hiking.")
@@ -975,7 +985,7 @@ def build_loop_candidates(
                 "round_trip": {
                     "length": int(target_distance_m),
                     "points": 4 if target_distance_m <= 12_000 else 5,
-                    "seed": index * 10 + seed,
+                    "seed": seed_offset + index * 10 + seed,
                 },
             }
             try:
@@ -1009,7 +1019,7 @@ def build_loop_candidates(
             candidate = LoopCandidate(
                 start_coord=start_coord,
                 start_offset_m=start_offset_m,
-                seed=index * 10 + seed,
+                seed=seed_offset + index * 10 + seed,
                 route=route,
                 score=score,
                 score_breakdown=score_breakdown,
