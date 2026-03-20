@@ -12,6 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from run_router.env import load_env_file
 from run_router.service import (
+    RouteFeasibilityError,
     RouteError,
     build_loop_candidates,
     parse_planning_request,
@@ -117,11 +118,17 @@ def main() -> int:
             preferences=effective_preferences,
             top_priority=request.top_priority,
             secondary_priority=request.secondary_priority,
+            distance_tolerance_miles=request.distance_tolerance_miles,
+            non_negotiables=request.non_negotiables,
             max_candidates=request.max_candidates,
             seed_count=request.seed_count,
             start_limit=request.start_limit,
             seed_offset=request.seed_offset,
         )
+    except RouteFeasibilityError as exc:
+        print(f"No matching route: {exc}", file=sys.stderr)
+        print(json.dumps(exc.failure_analysis, indent=2), file=sys.stderr)
+        return 2
     except RouteError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
@@ -131,8 +138,10 @@ def main() -> int:
             "center": request.center,
             "profile": request.profile,
             "target_distance_miles": request.target_distance_miles,
+            "distance_tolerance_miles": request.distance_tolerance_miles,
             "top_priority": request.top_priority,
             "secondary_priority": request.secondary_priority,
+            "non_negotiables": request.non_negotiables,
             "effective_preferences": effective_preferences.__dict__,
             "llm_summary": llm_hint.summary if llm_hint else None,
             "candidates": [
@@ -170,9 +179,12 @@ def main() -> int:
         print(f"Center: {request.center[0]:.5f},{request.center[1]:.5f}")
         print(f"Profile: {request.profile}")
         print(f"Target distance: {request.target_distance_miles:.2f} mi")
+        print(f"Distance tolerance: {request.distance_tolerance_miles:.2f} mi")
         print(f"Top priority: {request.top_priority}")
         if request.secondary_priority:
             print(f"Secondary priority: {request.secondary_priority}")
+        if request.non_negotiables:
+            print("Non-negotiables: " + ", ".join(request.non_negotiables))
         print(
             "Preferences: "
             f"pavement={effective_preferences.pavement_preference:.2f}, "

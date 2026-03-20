@@ -16,8 +16,10 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from run_router.env import load_env_file
 from run_router.service import (
+    NON_NEGOTIABLE_OPTIONS,
     PlanningRequest,
     PRIORITY_OPTIONS,
+    RouteFeasibilityError,
     RouteError,
     build_loop_candidates,
     first_value,
@@ -38,6 +40,7 @@ PLAN_PRESETS = {
         "label": "Safe Early Morning",
         "category": "Confidence",
         "target_distance_miles": 3.0,
+        "distance_tolerance_miles": 0.5,
         "start_radius_miles": 0.2,
         "top_priority": "Lighting and confidence",
         "secondary_priority": "Simple navigation",
@@ -52,6 +55,7 @@ PLAN_PRESETS = {
         "label": "Easy Nearby Loop",
         "category": "Confidence",
         "target_distance_miles": 4.0,
+        "distance_tolerance_miles": 0.5,
         "start_radius_miles": 0.35,
         "top_priority": "Closer start",
         "secondary_priority": "Distance accuracy",
@@ -66,6 +70,7 @@ PLAN_PRESETS = {
         "label": "City Landmark Run",
         "category": "Explore",
         "target_distance_miles": 5.0,
+        "distance_tolerance_miles": 0.6,
         "start_radius_miles": 0.5,
         "top_priority": "Landmarks",
         "secondary_priority": "Nature access",
@@ -80,6 +85,7 @@ PLAN_PRESETS = {
         "label": "Race Prep Hills",
         "category": "Training",
         "target_distance_miles": 6.0,
+        "distance_tolerance_miles": 0.5,
         "start_radius_miles": 0.4,
         "top_priority": "Elevation profile",
         "secondary_priority": "Distance accuracy",
@@ -94,6 +100,7 @@ PLAN_PRESETS = {
         "label": "Trail Confidence Loop",
         "category": "Trail",
         "target_distance_miles": 4.5,
+        "distance_tolerance_miles": 0.6,
         "start_radius_miles": 0.5,
         "top_priority": "Trail quality",
         "secondary_priority": "Simple navigation",
@@ -172,6 +179,8 @@ def build_loop_response(payload: dict) -> dict:
         preferences=effective_preferences,
         top_priority=request.top_priority,
         secondary_priority=request.secondary_priority,
+        distance_tolerance_miles=request.distance_tolerance_miles,
+        non_negotiables=request.non_negotiables,
         max_candidates=request.max_candidates,
         seed_count=request.seed_count,
         start_limit=request.start_limit,
@@ -183,6 +192,7 @@ def build_loop_response(payload: dict) -> dict:
             "center_coord": f"{request.center[0]},{request.center[1]}",
             "profile": request.profile,
             "target_distance_miles": request.target_distance_miles,
+            "distance_tolerance_miles": request.distance_tolerance_miles,
             "start_radius_miles": request.start_radius_miles,
             "max_candidates": request.max_candidates,
             "seed_count": request.seed_count,
@@ -190,6 +200,7 @@ def build_loop_response(payload: dict) -> dict:
             "seed_offset": request.seed_offset,
             "top_priority": request.top_priority,
             "secondary_priority": request.secondary_priority,
+            "non_negotiables": request.non_negotiables,
             "base_preferences": request.preferences.__dict__,
             "effective_preferences": effective_preferences.__dict__,
             "design_brief": request.design_brief,
@@ -197,9 +208,11 @@ def build_loop_response(payload: dict) -> dict:
         "center": request.center,
         "profile": request.profile,
         "target_distance_miles": request.target_distance_miles,
+        "distance_tolerance_miles": request.distance_tolerance_miles,
         "start_radius_miles": request.start_radius_miles,
         "top_priority": request.top_priority,
         "secondary_priority": request.secondary_priority,
+        "non_negotiables": request.non_negotiables,
         "effective_preferences": effective_preferences.__dict__,
         "llm_summary": llm_hint.summary if llm_hint else None,
         "candidates": [
@@ -210,6 +223,7 @@ def build_loop_response(payload: dict) -> dict:
                 "start_coord": candidate.start_coord,
                 "start_offset_miles": candidate.start_offset_m / 1609.344,
                 "seed": candidate.seed,
+                "constraint_results": candidate.constraint_results,
                 "badges": [
                     {"code": badge.code, "label": badge.label, "strength": badge.strength}
                     for badge in (candidate.badges or [])
@@ -238,6 +252,27 @@ def build_loop_response(payload: dict) -> dict:
             }
             for candidate in candidates
         ],
+    }
+
+
+def build_request_debug_payload(payload: dict) -> dict:
+    request = build_request(payload)
+    return {
+        "center_coord": f"{request.center[0]},{request.center[1]}",
+        "profile": request.profile,
+        "target_distance_miles": request.target_distance_miles,
+        "distance_tolerance_miles": request.distance_tolerance_miles,
+        "start_radius_miles": request.start_radius_miles,
+        "max_candidates": request.max_candidates,
+        "seed_count": request.seed_count,
+        "start_limit": request.start_limit,
+        "seed_offset": request.seed_offset,
+        "top_priority": request.top_priority,
+        "secondary_priority": request.secondary_priority,
+        "non_negotiables": request.non_negotiables,
+        "base_preferences": request.preferences.__dict__,
+        "effective_preferences": request.preferences.__dict__,
+        "design_brief": request.design_brief,
     }
 
 
@@ -272,7 +307,14 @@ class RouteMapLabHandler(BaseHTTPRequestHandler):
             return
 
         if self.path == "/api/plans":
-            self._send_json(200, {"plans": PLAN_PRESETS, "priorities": PRIORITY_OPTIONS})
+            self._send_json(
+                200,
+                {
+                    "plans": PLAN_PRESETS,
+                    "priorities": PRIORITY_OPTIONS,
+                    "non_negotiables": NON_NEGOTIABLE_OPTIONS,
+                },
+            )
             return
 
         if self.path == "/health":
@@ -295,6 +337,16 @@ class RouteMapLabHandler(BaseHTTPRequestHandler):
 
         try:
             response = build_loop_response(payload)
+        except RouteFeasibilityError as exc:
+            self._send_json(
+                422,
+                {
+                    "error": str(exc),
+                    "failure_analysis": exc.failure_analysis,
+                    "request_debug": build_request_debug_payload(payload),
+                },
+            )
+            return
         except RouteError as exc:
             self._send_json(400, {"error": str(exc)})
             return

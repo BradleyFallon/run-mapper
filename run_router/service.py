@@ -27,10 +27,30 @@ PRIORITY_OPTIONS = (
     "Low interruptions",
     "Lighting and confidence",
 )
+NON_NEGOTIABLE_OPTIONS = (
+    "Distance accuracy",
+    "Closer start",
+    "Simple navigation",
+    "Paved surface",
+    "Elevation profile",
+    "Quiet surroundings",
+    "Nature access",
+    "Trail quality",
+    "Low interruptions",
+    "Lighting and confidence",
+)
 
 
 class RouteError(Exception):
     """Raised when the route request or input is invalid."""
+
+
+class RouteFeasibilityError(RouteError):
+    """Raised when routes exist, but none satisfy non-negotiable constraints."""
+
+    def __init__(self, message: str, *, failure_analysis: dict):
+        super().__init__(message)
+        self.failure_analysis = failure_analysis
 
 
 @dataclass
@@ -67,6 +87,7 @@ class PlanningRequest:
     center: list[float]
     profile: str
     target_distance_miles: float
+    distance_tolerance_miles: float
     start_radius_miles: float
     max_candidates: int
     seed_count: int
@@ -74,6 +95,7 @@ class PlanningRequest:
     seed_offset: int
     top_priority: str
     secondary_priority: str | None
+    non_negotiables: list[str]
     preferences: LoopPreferenceProfile
     design_brief: str
 
@@ -95,6 +117,7 @@ class LoopCandidate:
     score: float
     score_breakdown: dict[str, float]
     ranking_breakdown: dict[str, float] | None = None
+    constraint_results: dict[str, dict] | None = None
     traits: "RouteTraits | None" = None
     badges: list["RouteBadge"] | None = None
     summary: "RouteSummary | None" = None
@@ -214,6 +237,28 @@ def parse_priority(
     return text
 
 
+def parse_priority_list(value: object, *, name: str) -> list[str]:
+    if value in (None, "", []):
+        return []
+
+    if isinstance(value, str):
+        raw_items = [item.strip() for item in value.split(",") if item.strip()]
+    elif isinstance(value, (list, tuple)):
+        raw_items = [str(item).strip() for item in value if str(item).strip()]
+    else:
+        raise RouteError(f"{name} must be a list of priorities.")
+
+    normalized: list[str] = []
+    for item in raw_items:
+        if item not in NON_NEGOTIABLE_OPTIONS:
+            raise RouteError(
+                f"{name} entries must be one of: {', '.join(NON_NEGOTIABLE_OPTIONS)}."
+            )
+        if item not in normalized:
+            normalized.append(item)
+    return normalized
+
+
 def first_value(data: dict, *names: str, default=None):
     for name in names:
         if name in data:
@@ -256,6 +301,7 @@ def parse_planning_request(
     *,
     profile_default: str = "foot-walking",
     target_distance_default: float = 6.0,
+    distance_tolerance_default: float = 0.5,
     start_radius_default: float = 1.5,
     max_candidates_default: int = 3,
     seed_count_default: int = 1,
@@ -280,6 +326,17 @@ def parse_planning_request(
             ),
             name="Target distance",
             minimum=0.1,
+        ),
+        distance_tolerance_miles=parse_positive_float(
+            first_value(
+                data,
+                "distance_tolerance_miles",
+                "distance_tolerance",
+                "tolerance",
+                default=distance_tolerance_default,
+            ),
+            name="Distance tolerance",
+            minimum=0.0,
         ),
         start_radius_miles=parse_positive_float(
             first_value(
@@ -328,6 +385,10 @@ def parse_planning_request(
             first_value(data, "secondary_priority", default=secondary_priority_default),
             name="Secondary priority",
             required=False,
+        ),
+        non_negotiables=parse_priority_list(
+            first_value(data, "non_negotiables", "must_have", default=[]),
+            name="Non-negotiables",
         ),
         preferences=parse_preferences(
             data,
@@ -673,12 +734,23 @@ def dimension_scores_from_traits(
     traits: RouteTraits,
 ) -> dict[str, float]:
     environmental_fit = clamp((traits.quiet_fit * 0.45) + (traits.green_fit * 0.55))
+    confidence_fit = clamp(
+        (traits.route_simplicity * 0.4)
+        + (traits.start_convenience * 0.25)
+        + (traits.surface_fit * 0.2)
+        + (traits.quiet_fit * 0.15)
+    )
+    landmark_fit = clamp((traits.discovery_fit * 0.75) + (traits.green_fit * 0.25))
+    interruption_fit = clamp((traits.training_fit * 0.55) + (traits.route_simplicity * 0.45))
     return {
         "distance_fit": score_breakdown.get("distance", 0.5),
         "start_convenience": score_breakdown.get("start", 0.5),
         "surface_fit": score_breakdown.get("pavement", 0.5),
         "hill_fit": score_breakdown.get("hills", 0.5),
         "environmental_fit": environmental_fit,
+        "confidence_fit": confidence_fit,
+        "landmark_fit": landmark_fit,
+        "interruption_fit": interruption_fit,
         "route_simplicity": traits.route_simplicity,
         "discovery_fit": traits.discovery_fit,
         "training_fit": traits.training_fit,
@@ -690,19 +762,15 @@ def priority_weight_map(priority: str) -> dict[str, float]:
     maps = {
         "Distance accuracy": {"distance_fit": 1.0},
         "Closer start": {"start_convenience": 1.0},
-        "Simple navigation": {"route_simplicity": 0.7, "start_convenience": 0.3},
+        "Simple navigation": {"route_simplicity": 0.75, "start_convenience": 0.25},
         "Paved surface": {"surface_fit": 1.0},
         "Elevation profile": {"hill_fit": 0.65, "training_fit": 0.35},
-        "Landmarks": {"discovery_fit": 1.0},
-        "Quiet surroundings": {"environmental_fit": 1.0},
+        "Landmarks": {"landmark_fit": 0.65, "discovery_fit": 0.35},
+        "Quiet surroundings": {"environmental_fit": 0.7, "confidence_fit": 0.3},
         "Nature access": {"discovery_fit": 0.55, "environmental_fit": 0.45},
         "Trail quality": {"trail_suitability": 0.6, "surface_fit": 0.4},
-        "Low interruptions": {"training_fit": 0.55, "route_simplicity": 0.45},
-        "Lighting and confidence": {
-            "route_simplicity": 0.45,
-            "start_convenience": 0.35,
-            "environmental_fit": 0.2,
-        },
+        "Low interruptions": {"interruption_fit": 0.65, "training_fit": 0.35},
+        "Lighting and confidence": {"confidence_fit": 0.7, "route_simplicity": 0.3},
     }
     return maps.get(priority, {"distance_fit": 1.0})
 
@@ -725,6 +793,9 @@ def aggregate_candidate_score(
         "discovery_fit": 0.06,
         "training_fit": 0.04,
         "trail_suitability": 0.02,
+        "confidence_fit": 0.0,
+        "landmark_fit": 0.0,
+        "interruption_fit": 0.0,
     }
 
     for dimension, amount in priority_weight_map(top_priority).items():
@@ -743,6 +814,200 @@ def aggregate_candidate_score(
         for dimension in normalized_weights
     }
     return sum(ranking_breakdown.values()), ranking_breakdown
+
+
+def evaluate_non_negotiable(
+    *,
+    name: str,
+    candidate: LoopCandidate,
+    request: PlanningRequest,
+) -> dict:
+    traits = candidate.traits
+    if traits is None:
+        raise RouteError("Cannot evaluate non-negotiables before deriving traits.")
+
+    if name == "Distance accuracy":
+        delta = abs(candidate.route.distance_mi - request.target_distance_miles)
+        threshold = request.distance_tolerance_miles
+        passed = delta <= threshold
+        return {
+            "name": name,
+            "passed": passed,
+            "score": max(0.0, 1 - (delta / max(threshold, 0.25))) if threshold > 0 else float(delta == 0),
+            "threshold": threshold,
+            "detail": f"Route is {delta:.2f} mi from target with {threshold:.2f} mi tolerance.",
+        }
+
+    if name == "Closer start":
+        threshold = request.start_radius_miles
+        delta = candidate.start_offset_m / MILES_TO_METERS
+        passed = delta <= threshold
+        return {
+            "name": name,
+            "passed": passed,
+            "score": traits.start_convenience,
+            "threshold": threshold,
+            "detail": f"Start is {delta:.2f} mi away with {threshold:.2f} mi allowed radius.",
+        }
+
+    if name == "Simple navigation":
+        threshold = 0.68
+        value = traits.route_simplicity
+        return {
+            "name": name,
+            "passed": value >= threshold,
+            "score": value,
+            "threshold": threshold,
+            "detail": f"Route simplicity scored {value:.2f} against a {threshold:.2f} requirement.",
+        }
+
+    if name == "Paved surface":
+        threshold = 0.65
+        value = traits.paved_ratio or 0.0
+        return {
+            "name": name,
+            "passed": value >= threshold and traits.surface_fit >= 0.62,
+            "score": value,
+            "threshold": threshold,
+            "detail": f"Paved share is {value:.2f}; RouteScout requires mostly paved footing.",
+        }
+
+    if name == "Elevation profile":
+        threshold = 0.72
+        value = traits.hill_fit
+        return {
+            "name": name,
+            "passed": value >= threshold,
+            "score": value,
+            "threshold": threshold,
+            "detail": f"Hill-fit scored {value:.2f} for the requested elevation profile.",
+        }
+
+    if name == "Quiet surroundings":
+        threshold = 0.68
+        value = traits.quiet_fit
+        return {
+            "name": name,
+            "passed": value >= threshold,
+            "score": value,
+            "threshold": threshold,
+            "detail": f"Quiet-fit scored {value:.2f}; this area may be noisier than requested.",
+        }
+
+    if name == "Nature access":
+        threshold = 0.62
+        value = traits.discovery_fit
+        return {
+            "name": name,
+            "passed": value >= threshold,
+            "score": value,
+            "threshold": threshold,
+            "detail": f"Discovery-fit scored {value:.2f}; greener/scenic exposure may be limited.",
+        }
+
+    if name == "Trail quality":
+        threshold = 0.62
+        value = traits.trail_suitability
+        return {
+            "name": name,
+            "passed": value >= threshold,
+            "score": value,
+            "threshold": threshold,
+            "detail": f"Trail suitability scored {value:.2f}; trail character may be too weak here.",
+        }
+
+    if name == "Low interruptions":
+        threshold = 0.62
+        value = clamp((traits.training_fit * 0.55) + (traits.route_simplicity * 0.45))
+        return {
+            "name": name,
+            "passed": value >= threshold,
+            "score": value,
+            "threshold": threshold,
+            "detail": f"Interruption proxy scored {value:.2f}; route flow may be weaker than requested.",
+        }
+
+    if name == "Lighting and confidence":
+        threshold = 0.66
+        value = clamp(
+            (traits.route_simplicity * 0.4)
+            + (traits.start_convenience * 0.25)
+            + (traits.surface_fit * 0.2)
+            + (traits.quiet_fit * 0.15)
+        )
+        return {
+            "name": name,
+            "passed": value >= threshold,
+            "score": value,
+            "threshold": threshold,
+            "detail": f"Confidence proxy scored {value:.2f}; the area may not support the desired route confidence.",
+        }
+
+    raise RouteError(f"Unsupported non-negotiable: {name}")
+
+
+def evaluate_candidate_constraints(
+    *,
+    candidate: LoopCandidate,
+    request: PlanningRequest,
+) -> dict[str, dict]:
+    return {
+        name: evaluate_non_negotiable(name=name, candidate=candidate, request=request)
+        for name in request.non_negotiables
+    }
+
+
+def build_feasibility_failure_analysis(
+    *,
+    request: PlanningRequest,
+    candidates: list[LoopCandidate],
+) -> dict:
+    requirement_stats = []
+    for name in request.non_negotiables:
+        results = [candidate.constraint_results.get(name, {}) for candidate in candidates]
+        passed_count = sum(1 for result in results if result.get("passed"))
+        best_result = max(results, key=lambda item: item.get("score", 0.0), default={})
+        requirement_stats.append(
+            {
+                "name": name,
+                "passed_count": passed_count,
+                "candidate_count": len(candidates),
+                "best_score": best_result.get("score"),
+                "threshold": best_result.get("threshold"),
+                "detail": best_result.get("detail"),
+            }
+        )
+
+    near_misses = []
+    sorted_candidates = sorted(
+        candidates,
+        key=lambda candidate: (
+            sum(1 for item in (candidate.constraint_results or {}).values() if item.get("passed")),
+            candidate.score,
+        ),
+        reverse=True,
+    )
+    for candidate in sorted_candidates[:3]:
+        failed = [
+            name
+            for name, result in (candidate.constraint_results or {}).items()
+            if not result.get("passed")
+        ]
+        near_misses.append(
+            {
+                "distance_miles": round(candidate.route.distance_mi, 2),
+                "score": round(candidate.score, 3),
+                "failed_requirements": failed,
+                "headline": candidate.summary.headline if candidate.summary else "Route candidate",
+            }
+        )
+
+    return {
+        "message": "No routes satisfied every non-negotiable for this area.",
+        "non_negotiables": request.non_negotiables,
+        "requirements": requirement_stats,
+        "near_misses": near_misses,
+    }
 
 
 def qualifies_nearby(traits: RouteTraits, *, threshold: float = 0.8) -> bool:
@@ -1077,6 +1342,8 @@ def build_loop_candidates(
     preferences: LoopPreferenceProfile,
     top_priority: str = "Distance accuracy",
     secondary_priority: str | None = "Closer start",
+    distance_tolerance_miles: float = 0.5,
+    non_negotiables: list[str] | None = None,
     noise_threshold_m: float = 2.0,
     max_candidates: int = 12,
     seed_count: int = 4,
@@ -1103,6 +1370,8 @@ def build_loop_candidates(
     starts = generate_candidate_starts(center, start_radius_m)
     if start_limit is not None:
         starts = starts[:start_limit]
+
+    requested_non_negotiables = non_negotiables or []
 
     for index, (start_coord, start_offset_m) in enumerate(starts):
         for seed in range(1, seed_count + 1):
@@ -1162,6 +1431,26 @@ def build_loop_candidates(
                 traits=traits,
                 badges=badges,
             )
+            if requested_non_negotiables:
+                candidate.constraint_results = evaluate_candidate_constraints(
+                    candidate=candidate,
+                    request=PlanningRequest(
+                        center=center,
+                        profile=profile,
+                        target_distance_miles=target_distance_m / MILES_TO_METERS,
+                        distance_tolerance_miles=distance_tolerance_miles,
+                        start_radius_miles=start_radius_m / MILES_TO_METERS,
+                        max_candidates=max_candidates,
+                        seed_count=seed_count,
+                        start_limit=start_limit or len(starts),
+                        seed_offset=seed_offset,
+                        top_priority=top_priority,
+                        secondary_priority=secondary_priority,
+                        non_negotiables=requested_non_negotiables,
+                        preferences=preferences,
+                        design_brief="",
+                    ),
+                )
             candidate.summary = build_candidate_summary(candidate)
             candidates.append(
                 candidate
@@ -1173,6 +1462,41 @@ def build_loop_candidates(
         raise RouteError("No viable loop routes were returned for that area and preference set.")
 
     candidates.sort(key=lambda candidate: candidate.score, reverse=True)
+
+    if requested_non_negotiables:
+        matching_candidates = [
+            candidate
+            for candidate in candidates
+            if all(
+                result.get("passed")
+                for result in (candidate.constraint_results or {}).values()
+            )
+        ]
+        if matching_candidates:
+            return matching_candidates
+        raise RouteFeasibilityError(
+            "No routes satisfied every non-negotiable.",
+            failure_analysis=build_feasibility_failure_analysis(
+                request=PlanningRequest(
+                    center=center,
+                    profile=profile,
+                    target_distance_miles=target_distance_m / MILES_TO_METERS,
+                    distance_tolerance_miles=distance_tolerance_miles,
+                    start_radius_miles=start_radius_m / MILES_TO_METERS,
+                    max_candidates=max_candidates,
+                    seed_count=seed_count,
+                    start_limit=start_limit or len(starts),
+                    seed_offset=seed_offset,
+                    top_priority=top_priority,
+                    secondary_priority=secondary_priority,
+                    non_negotiables=requested_non_negotiables,
+                    preferences=preferences,
+                    design_brief="",
+                ),
+                candidates=candidates,
+            ),
+        )
+
     return candidates
 
 

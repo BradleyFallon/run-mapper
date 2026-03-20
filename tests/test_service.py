@@ -5,7 +5,9 @@ from run_router.service import (
     LoopCandidate,
     PRIORITY_OPTIONS,
     aggregate_candidate_score,
+    build_feasibility_failure_analysis,
     build_candidate_summary,
+    evaluate_candidate_constraints,
     parse_planning_request,
     compute_elevation_stats,
     derive_route_badges,
@@ -303,6 +305,104 @@ class ServiceTests(unittest.TestCase):
         self.assertGreater(hill_breakdown["hill_fit"], start_breakdown["hill_fit"])
         self.assertGreater(start_breakdown["start_convenience"], hill_breakdown["start_convenience"])
         self.assertNotEqual(hill_score, start_score)
+
+    def test_evaluate_non_negotiable_distance_accuracy_uses_tolerance(self):
+        request = parse_planning_request(
+            {
+                "center_coord": "-122.6765,45.5236",
+                "target_distance_miles": 6.0,
+                "distance_tolerance_miles": 0.25,
+                "non_negotiables": ["Distance accuracy"],
+            }
+        )
+        route = self.make_route_result()
+        traits = derive_route_traits(
+            route=route,
+            score_breakdown={
+                "distance": 0.7,
+                "pavement": 0.8,
+                "quiet": 0.7,
+                "green": 0.6,
+                "hills": 0.6,
+                "start": 1.0,
+            },
+            start_offset_m=0.0,
+            start_radius_m=100.0,
+        )
+        candidate = LoopCandidate(
+            start_coord=[-122.0, 45.0],
+            start_offset_m=0.0,
+            seed=1,
+            route=route,
+            score=0.0,
+            score_breakdown={},
+            traits=traits,
+        )
+        candidate.constraint_results = evaluate_candidate_constraints(
+            candidate=candidate,
+            request=request,
+        )
+
+        self.assertFalse(candidate.constraint_results["Distance accuracy"]["passed"])
+
+    def test_build_feasibility_failure_analysis_summarizes_requirements(self):
+        request = parse_planning_request(
+            {
+                "center_coord": "-122.6765,45.5236",
+                "non_negotiables": ["Paved surface", "Quiet surroundings"],
+            }
+        )
+        route = self.make_route_result()
+        traits = derive_route_traits(
+            route=route,
+            score_breakdown={
+                "distance": 0.9,
+                "pavement": 0.3,
+                "quiet": 0.4,
+                "green": 0.5,
+                "hills": 0.7,
+                "start": 1.0,
+            },
+            start_offset_m=0.0,
+            start_radius_m=100.0,
+        )
+        candidate = LoopCandidate(
+            start_coord=[-122.0, 45.0],
+            start_offset_m=0.0,
+            seed=1,
+            route=route,
+            score=0.4,
+            score_breakdown={},
+            traits=traits,
+        )
+        candidate.summary = build_candidate_summary(
+            LoopCandidate(
+                start_coord=[-122.0, 45.0],
+                start_offset_m=0.0,
+                seed=1,
+                route=route,
+                score=0.4,
+                score_breakdown={
+                    "distance": 0.9,
+                    "pavement": 0.3,
+                    "quiet": 0.4,
+                    "green": 0.5,
+                    "hills": 0.7,
+                    "start": 1.0,
+                },
+                ranking_breakdown={"distance_fit": 0.2},
+                traits=traits,
+            )
+        )
+        candidate.constraint_results = evaluate_candidate_constraints(
+            candidate=candidate,
+            request=request,
+        )
+
+        analysis = build_feasibility_failure_analysis(request=request, candidates=[candidate])
+
+        self.assertEqual(len(analysis["requirements"]), 2)
+        self.assertEqual(analysis["near_misses"][0]["failed_requirements"], ["Paved surface", "Quiet surroundings"])
 
 
 if __name__ == "__main__":
