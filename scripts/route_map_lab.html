@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RouteScout Map Lab</title>
+    <title>RouteScout Planner Prototype</title>
     <link rel="icon" type="image/png" href="/logo.png" />
     <link
       rel="stylesheet"
@@ -14,91 +14,160 @@
     <style>
       :root {
         color-scheme: dark;
-        --bg: #07050a;
-        --panel: #15121a;
-        --panel-raised: #1b1721;
-        --border: #2b2433;
-        --text: #f5f7fa;
-        --muted: #afb3bf;
-        --accent: #c8ff55;
-        --accent-soft: rgba(200, 255, 85, 0.14);
-        --info: #7cb9ff;
+        --bg: #0a0710;
+        --bg-elevated: #120f18;
+        --panel: rgba(21, 18, 29, 0.96);
+        --panel-raised: rgba(28, 24, 37, 0.98);
+        --border: rgba(124, 115, 145, 0.28);
+        --border-strong: rgba(200, 255, 85, 0.34);
+        --text: #f7f8fb;
+        --muted: #adb0bc;
+        --accent: #c4ff5b;
+        --accent-soft: rgba(196, 255, 91, 0.11);
+        --info: #7fb5ff;
+        --error: #ff9bb2;
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
       }
 
-      * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
         min-height: 100vh;
         background:
-          radial-gradient(circle at top left, rgba(200, 255, 85, 0.05), transparent 20%),
-          radial-gradient(circle at top right, rgba(124, 185, 255, 0.06), transparent 24%),
-          linear-gradient(180deg, #0d0a12, var(--bg));
+          radial-gradient(circle at top left, rgba(196, 255, 91, 0.05), transparent 22%),
+          radial-gradient(circle at top right, rgba(127, 181, 255, 0.08), transparent 24%),
+          linear-gradient(180deg, #120d18 0%, var(--bg) 100%);
         color: var(--text);
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
       }
 
-      .shell {
-        display: grid;
-        grid-template-columns: 360px minmax(0, 1fr);
-        min-height: 100vh;
-      }
-
-      .sidebar {
-        padding: 20px;
-        border-right: 1px solid var(--border);
-        background: rgba(21, 18, 26, 0.9);
-        overflow-y: auto;
-      }
-
-      .brand {
-        display: flex;
-        gap: 14px;
-        align-items: center;
-        margin-bottom: 20px;
-      }
-
-      .brand img {
-        width: 54px;
-        height: 54px;
-        border-radius: 16px;
-        padding: 7px;
-        background: linear-gradient(145deg, rgba(200, 255, 85, 0.14), rgba(124, 185, 255, 0.1));
-        border: 1px solid rgba(200, 255, 85, 0.28);
-      }
-
-      .eyebrow {
-        margin: 0 0 4px;
-        color: var(--accent);
-        text-transform: uppercase;
-        letter-spacing: 0.16em;
-        font-size: 12px;
-        font-weight: 700;
-      }
-
-      h1, h2, h3 {
+      h1, h2, h3, h4 {
         margin: 0;
         font-style: italic;
         line-height: 1;
       }
 
-      h1 { font-size: 28px; }
-      h2 { font-size: 18px; margin-bottom: 12px; }
-      p, label, input, textarea, button, select {
+      p, input, label, textarea, select, button {
         font: inherit;
       }
 
-      .copy {
-        margin: 0 0 20px;
-        color: var(--muted);
-        line-height: 1.5;
+      .shell {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        min-height: 100vh;
       }
 
-      .card {
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(14, 11, 18, 0.88);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand img {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        padding: 7px;
+        background: linear-gradient(145deg, rgba(196, 255, 91, 0.15), rgba(127, 181, 255, 0.14));
+        border: 1px solid rgba(196, 255, 91, 0.28);
+      }
+
+      .eyebrow {
+        margin: 0 0 6px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .topbar h1 {
+        font-size: 28px;
+      }
+
+      .topbar-copy {
+        color: var(--muted);
+        max-width: 760px;
+        line-height: 1.45;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: 360px minmax(0, 1fr) 420px;
+        min-height: 0;
+      }
+
+      .panel {
+        min-height: 0;
+      }
+
+      .panel-left,
+      .panel-right {
+        padding: 18px;
+        overflow-y: auto;
+      }
+
+      .panel-left {
+        border-right: 1px solid var(--border);
+        background: rgba(17, 13, 23, 0.86);
+      }
+
+      .panel-right {
+        border-left: 1px solid var(--border);
+        background: rgba(15, 12, 20, 0.92);
+      }
+
+      .panel-center {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        min-width: 0;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px 18px 10px;
+      }
+
+      .toolbar-copy {
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .toolbar-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .surface {
         padding: 16px;
         border: 1px solid var(--border);
-        border-radius: 18px;
-        background: linear-gradient(180deg, rgba(27, 23, 33, 0.92), rgba(21, 18, 26, 0.96));
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(27, 23, 36, 0.96), rgba(16, 13, 23, 0.98));
+        box-shadow: var(--shadow);
         margin-bottom: 14px;
+      }
+
+      .surface h2 {
+        font-size: 18px;
+        margin-bottom: 12px;
       }
 
       .field {
@@ -116,19 +185,13 @@
       input, select, textarea, button {
         border-radius: 12px;
         border: 1px solid var(--border);
-        background: #120f16;
+        background: #130f1a;
         color: var(--text);
         padding: 10px 12px;
       }
 
       input[type="range"] {
         padding: 0;
-      }
-
-      .actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
       }
 
       button {
@@ -138,230 +201,531 @@
 
       .primary {
         background: var(--accent);
-        color: #050607;
-        border-color: rgba(200, 255, 85, 0.5);
+        border-color: rgba(196, 255, 91, 0.44);
+        color: #060708;
       }
 
       .secondary {
         background: var(--accent-soft);
       }
 
-      .map-wrap {
+      .button-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .meta {
+        color: var(--muted);
+        line-height: 1.5;
+        font-size: 13px;
+      }
+
+      .spec-summary {
         display: grid;
-        grid-template-rows: minmax(0, 1fr) auto;
-        min-height: 100vh;
+        gap: 10px;
+      }
+
+      .priority-list,
+      .strength-list,
+      .tradeoff-list {
+        display: grid;
+        gap: 8px;
+        padding-left: 18px;
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .priority-pill-row,
+      .stat-grid,
+      .badge-row,
+      .reasons-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .pill,
+      .badge,
+      .reason-pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        border-radius: 999px;
+        padding: 0 11px;
+        font-size: 12px;
+        letter-spacing: 0.03em;
+        font-weight: 700;
+      }
+
+      .pill {
+        background: rgba(127, 181, 255, 0.1);
+        border: 1px solid rgba(127, 181, 255, 0.18);
+        color: #b8d5ff;
+      }
+
+      .badge {
+        background: rgba(196, 255, 91, 0.1);
+        border: 1px solid rgba(196, 255, 91, 0.2);
+        color: var(--accent);
+      }
+
+      .reason-pill {
+        background: rgba(245, 247, 250, 0.08);
+        border: 1px solid rgba(245, 247, 250, 0.12);
+        color: var(--text);
+      }
+
+      .spec-card {
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(24, 19, 31, 0.96), rgba(14, 12, 19, 0.96));
+      }
+
+      .spec-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .spec-name {
+        font-size: 20px;
+      }
+
+      .code-chip {
+        border-radius: 10px;
+        padding: 5px 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .map-card {
+        position: relative;
+        min-height: 0;
+        margin: 0 16px 16px;
+        border-radius: 26px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
       }
 
       #map {
         width: 100%;
         height: 100%;
+        min-height: 560px;
       }
 
-      .results {
-        max-height: 34vh;
-        overflow-y: auto;
-        border-top: 1px solid var(--border);
-        background: rgba(13, 10, 18, 0.96);
-        padding: 16px;
+      .map-overlay {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        z-index: 500;
+        pointer-events: none;
       }
 
-      .candidate {
+      .map-overlay-top {
+        top: 18px;
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .overlay-card {
+        pointer-events: auto;
+        max-width: 420px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: rgba(15, 12, 20, 0.84);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(14px);
+      }
+
+      .overlay-card h3 {
+        font-size: 16px;
+        margin-bottom: 8px;
+      }
+
+      .overlay-value {
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .map-overlay-bottom {
+        bottom: 18px;
+        display: flex;
+        justify-content: flex-start;
+      }
+
+      .status {
+        min-height: 18px;
+        color: var(--muted);
+      }
+
+      .route-detail {
+        display: grid;
+        gap: 14px;
+      }
+
+      .route-detail-empty,
+      .candidate-empty {
+        padding: 20px;
+        border: 1px dashed var(--border);
+        border-radius: 18px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .detail-hero {
+        padding: 18px;
+        border: 1px solid var(--border-strong);
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(196, 255, 91, 0.08), rgba(20, 16, 27, 0.96));
+      }
+
+      .detail-hero h2 {
+        font-size: 22px;
+        margin-bottom: 8px;
+      }
+
+      .detail-hero .meta {
+        margin-top: 8px;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .stat-card {
+        padding: 12px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .stat-label {
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .stat-value {
+        display: block;
+        margin-top: 8px;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .breakdown-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .breakdown-row {
+        display: grid;
+        gap: 6px;
+      }
+
+      .breakdown-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .bar {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        overflow: hidden;
+      }
+
+      .bar > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, rgba(127, 181, 255, 0.88), rgba(196, 255, 91, 0.92));
+      }
+
+      .candidate-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .candidate-card {
         padding: 14px;
         border: 1px solid var(--border);
-        border-radius: 16px;
-        background: var(--panel);
-        margin-bottom: 10px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(27, 23, 35, 0.96), rgba(17, 14, 23, 0.98));
         cursor: pointer;
       }
 
-      .candidate.active {
-        border-color: rgba(200, 255, 85, 0.5);
-        background: linear-gradient(180deg, rgba(200, 255, 85, 0.07), rgba(21, 18, 26, 0.96));
+      .candidate-card.active {
+        border-color: var(--border-strong);
+        background: linear-gradient(180deg, rgba(196, 255, 91, 0.07), rgba(18, 15, 25, 0.98));
       }
 
       .candidate-head {
         display: flex;
         justify-content: space-between;
-        gap: 12px;
+        gap: 10px;
         align-items: center;
         margin-bottom: 8px;
       }
 
-      .meta, .breakdown, .status {
-        color: var(--muted);
-        font-size: 13px;
-        line-height: 1.5;
+      .candidate-head strong {
+        font-size: 16px;
       }
 
-      .summary-copy {
-        margin-top: 8px;
-        line-height: 1.5;
+      .candidate-summary {
+        margin-top: 10px;
+        line-height: 1.45;
       }
 
-      .summary-copy strong {
+      .candidate-summary strong {
         color: var(--text);
       }
 
-      .badge-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin: 8px 0;
-      }
-
-      .badge {
+      .score-chip {
         display: inline-flex;
         align-items: center;
-        min-height: 26px;
+        justify-content: center;
+        min-width: 56px;
         padding: 0 10px;
         border-radius: 999px;
-        background: rgba(200, 255, 85, 0.1);
-        border: 1px solid rgba(200, 255, 85, 0.18);
+        background: rgba(196, 255, 91, 0.13);
         color: var(--accent);
         font-size: 12px;
         font-weight: 700;
-        letter-spacing: 0.04em;
       }
 
-      .status {
-        min-height: 20px;
-        margin-top: 10px;
+      @media (max-width: 1280px) {
+        .workspace {
+          grid-template-columns: 330px minmax(0, 1fr) 360px;
+        }
       }
 
-      @media (max-width: 960px) {
-        .shell {
+      @media (max-width: 1100px) {
+        .workspace {
           grid-template-columns: 1fr;
         }
-        .sidebar {
-          border-right: 0;
+
+        .panel-left,
+        .panel-right {
+          border: 0;
+        }
+
+        .panel-left {
           border-bottom: 1px solid var(--border);
         }
-        .map-wrap {
-          min-height: 65vh;
+
+        .panel-right {
+          border-top: 1px solid var(--border);
+        }
+
+        #map {
+          min-height: 440px;
         }
       }
     </style>
   </head>
   <body>
     <div class="shell">
-      <aside class="sidebar">
+      <header class="topbar">
         <div class="brand">
           <img src="/logo.png" alt="RouteScout logo" />
           <div>
-            <p class="eyebrow">Local Lab</p>
-            <h1>RouteScout Map</h1>
+            <p class="eyebrow">Planner Prototype</p>
+            <h1>RouteScout Web Planner</h1>
           </div>
         </div>
-        <p class="copy">
-          Use your location or click the map to set a start point. Then generate live ORS loop
-          candidates using the current Python route engine.
-        </p>
-
-        <div class="card">
-          <h2>Plan</h2>
-          <div class="field">
-            <label for="planPreset">Starter plan</label>
-            <select id="planPreset">
-              <option value="">Custom</option>
-            </select>
-          </div>
-          <div id="planMeta" class="meta"></div>
+        <div class="topbar-copy">
+          Build a Scout Spec, generate live loop candidates, and inspect why the recommended route
+          won. This is a script-first prototype wired directly to the Python route engine.
         </div>
+      </header>
 
-        <div class="card">
-          <h2>Start</h2>
-          <div class="grid-2">
+      <main class="workspace">
+        <aside class="panel panel-left">
+          <section class="surface">
+            <h2>Scout Spec</h2>
             <div class="field">
-              <label for="lat">Latitude</label>
-              <input id="lat" type="number" step="any" value="45.5236" />
-            </div>
-            <div class="field">
-              <label for="lon">Longitude</label>
-              <input id="lon" type="number" step="any" value="-122.6765" />
-            </div>
-          </div>
-          <div class="field">
-            <label for="radius">Start radius miles</label>
-            <input id="radius" type="number" step="0.1" min="0" value="0.2" />
-          </div>
-          <div class="actions">
-            <button id="locateBtn" class="secondary" type="button">Use My Location</button>
-            <button id="dropPinBtn" type="button">Click Map To Set Start</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>Run</h2>
-          <div class="grid-2">
-            <div class="field">
-              <label for="miles">Target miles</label>
-              <input id="miles" type="number" step="0.1" min="0.1" value="3.0" />
-            </div>
-            <div class="field">
-              <label for="profile">Profile</label>
-              <select id="profile">
-                <option value="foot-walking" selected>foot-walking</option>
-                <option value="foot-hiking">foot-hiking</option>
+              <label for="planPreset">Starter plan</label>
+              <select id="planPreset">
+                <option value="">Custom</option>
               </select>
             </div>
-          </div>
-          <div class="grid-2">
-            <div class="field">
-              <label for="maxCandidates">Max candidates</label>
-              <input id="maxCandidates" type="number" min="1" max="8" value="3" />
+
+            <div class="spec-card">
+              <div class="spec-head">
+                <div>
+                  <p class="eyebrow">Active Plan</p>
+                  <h3 id="specName" class="spec-name">Custom Spec</h3>
+                </div>
+                <div id="specCode" class="code-chip">CUSTOM</div>
+              </div>
+              <div id="planMeta" class="meta">Custom plan. Adjust fields directly.</div>
+              <div id="priorityRow" class="priority-pill-row" style="margin-top: 12px;"></div>
+            </div>
+          </section>
+
+          <section class="surface">
+            <h2>Start</h2>
+            <div class="grid-2">
+              <div class="field">
+                <label for="lat">Latitude</label>
+                <input id="lat" type="number" step="any" value="45.5236" />
+              </div>
+              <div class="field">
+                <label for="lon">Longitude</label>
+                <input id="lon" type="number" step="any" value="-122.6765" />
+              </div>
             </div>
             <div class="field">
-              <label for="seedCount">Seed count</label>
-              <input id="seedCount" type="number" min="1" max="8" value="3" />
+              <label for="radius">Start radius miles</label>
+              <input id="radius" type="number" step="0.1" min="0" value="0.2" />
+            </div>
+            <div class="button-row">
+              <button id="locateBtn" class="secondary" type="button">Use My Location</button>
+              <button id="dropPinBtn" type="button">Click Map To Set Start</button>
+            </div>
+          </section>
+
+          <section class="surface">
+            <h2>Run Intent</h2>
+            <div class="grid-2">
+              <div class="field">
+                <label for="miles">Target miles</label>
+                <input id="miles" type="number" step="0.1" min="0.1" value="3.0" />
+              </div>
+              <div class="field">
+                <label for="profile">Profile</label>
+                <select id="profile">
+                  <option value="foot-walking" selected>foot-walking</option>
+                  <option value="foot-hiking">foot-hiking</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <label for="maxCandidates">Candidates</label>
+                <input id="maxCandidates" type="number" min="1" max="8" value="3" />
+              </div>
+              <div class="field">
+                <label for="seedCount">Seed count</label>
+                <input id="seedCount" type="number" min="1" max="8" value="3" />
+              </div>
+            </div>
+          </section>
+
+          <section class="surface">
+            <h2>Priorities</h2>
+            <div class="field">
+              <label for="pavement">Pavement</label>
+              <input id="pavement" type="range" min="0" max="1" step="0.05" value="0.8" />
+            </div>
+            <div class="field">
+              <label for="quiet">Quiet</label>
+              <input id="quiet" type="range" min="0" max="1" step="0.05" value="0.8" />
+            </div>
+            <div class="field">
+              <label for="green">Green</label>
+              <input id="green" type="range" min="0" max="1" step="0.05" value="0.7" />
+            </div>
+            <div class="field">
+              <label for="hills">Hills (-1 flat, 1 hilly)</label>
+              <input id="hills" type="range" min="-1" max="1" step="0.05" value="0" />
+            </div>
+          </section>
+
+          <section class="surface">
+            <h2>Natural Language Brief</h2>
+            <div class="field">
+              <label for="brief">Optional design brief</label>
+              <textarea
+                id="brief"
+                rows="4"
+                placeholder="Quiet, paved morning loop with gentle hills."
+              ></textarea>
+            </div>
+            <div class="button-row">
+              <button id="generateBtn" class="primary" type="button">Scout Routes</button>
+              <button id="clearBtn" type="button">Clear</button>
+            </div>
+            <div id="status" class="status" style="margin-top: 10px;"></div>
+          </section>
+
+          <section class="surface">
+            <h2>Request Debug</h2>
+            <div id="debugMeta" class="meta">No request yet.</div>
+          </section>
+        </aside>
+
+        <section class="panel panel-center">
+          <div class="toolbar">
+            <div class="toolbar-copy">
+              Generate a small candidate set, compare route quality, and inspect the recommended
+              route in detail.
+            </div>
+            <div class="toolbar-actions">
+              <span class="pill">Category-driven plans</span>
+              <span class="pill">ORS loop generation</span>
+              <span class="pill">Heuristic ranking</span>
             </div>
           </div>
-        </div>
 
-        <div class="card">
-          <h2>Preferences</h2>
-          <div class="field">
-            <label for="pavement">Pavement</label>
-            <input id="pavement" type="range" min="0" max="1" step="0.05" value="0.8" />
+          <div class="map-card">
+            <div id="map"></div>
+            <div class="map-overlay map-overlay-top">
+              <div class="overlay-card">
+                <h3>Scout Spec Snapshot</h3>
+                <div id="specSnapshot" class="meta">
+                  Select a starter plan or tune a custom spec, then scout the area.
+                </div>
+              </div>
+              <div class="overlay-card">
+                <h3>Route Status</h3>
+                <div id="overlayStatus" class="meta">No routes yet.</div>
+              </div>
+            </div>
+            <div class="map-overlay map-overlay-bottom">
+              <div class="overlay-card">
+                <h3>Recommendation</h3>
+                <div id="mapRecommendation" class="meta">Generate routes to see the recommended loop.</div>
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label for="quiet">Quiet</label>
-            <input id="quiet" type="range" min="0" max="1" step="0.05" value="0.8" />
-          </div>
-          <div class="field">
-            <label for="green">Green</label>
-            <input id="green" type="range" min="0" max="1" step="0.05" value="0.7" />
-          </div>
-          <div class="field">
-            <label for="hills">Hills (-1 flat, 1 hilly)</label>
-            <input id="hills" type="range" min="-1" max="1" step="0.05" value="0" />
-          </div>
-        </div>
+        </section>
 
-        <div class="card">
-          <h2>Brief</h2>
-          <div class="field">
-            <label for="brief">Optional natural-language brief</label>
-            <textarea id="brief" rows="4" placeholder="Quiet, paved morning loop with gentle hills."></textarea>
-          </div>
-          <div class="actions">
-            <button id="generateBtn" class="primary" type="button">Generate Routes</button>
-            <button id="clearBtn" type="button">Clear Routes</button>
-          </div>
-          <div id="status" class="status"></div>
-        </div>
+        <aside class="panel panel-right">
+          <section class="surface">
+            <h2>Selected Route</h2>
+            <div id="selectedRoute" class="route-detail">
+              <div class="route-detail-empty">
+                No route selected yet. Generate candidates and click one to inspect its reasons,
+                features, and stats.
+              </div>
+            </div>
+          </section>
 
-        <div class="card">
-          <h2>Debug</h2>
-          <div id="debugMeta" class="meta">No request yet.</div>
-        </div>
-      </aside>
-
-      <section class="map-wrap">
-        <div id="map"></div>
-        <div id="results" class="results">
-          <div class="meta">No routes yet. Generate a loop to inspect candidates.</div>
-        </div>
-      </section>
+          <section class="surface">
+            <h2>Candidate Routes</h2>
+            <div id="llmNote" class="meta" style="margin-bottom: 12px;"></div>
+            <div id="candidateList" class="candidate-list">
+              <div class="candidate-empty">No routes yet. Scout the area to populate the route collection.</div>
+            </div>
+          </section>
+        </aside>
+      </main>
     </div>
 
     <script
@@ -376,10 +740,18 @@
       }).addTo(map);
 
       const statusEl = document.getElementById("status");
-      const resultsEl = document.getElementById("results");
+      const overlayStatusEl = document.getElementById("overlayStatus");
+      const mapRecommendationEl = document.getElementById("mapRecommendation");
+      const candidateListEl = document.getElementById("candidateList");
+      const selectedRouteEl = document.getElementById("selectedRoute");
+      const llmNoteEl = document.getElementById("llmNote");
       const planPresetEl = document.getElementById("planPreset");
       const planMetaEl = document.getElementById("planMeta");
       const debugMetaEl = document.getElementById("debugMeta");
+      const priorityRowEl = document.getElementById("priorityRow");
+      const specNameEl = document.getElementById("specName");
+      const specCodeEl = document.getElementById("specCode");
+      const specSnapshotEl = document.getElementById("specSnapshot");
       const latEl = document.getElementById("lat");
       const lonEl = document.getElementById("lon");
       const radiusEl = document.getElementById("radius");
@@ -398,15 +770,24 @@
       let planPresets = {};
 
       const routeStyles = [
-        { color: "#c8ff55", weight: 6, opacity: 0.95 },
-        { color: "#7cb9ff", weight: 5, opacity: 0.8 },
-        { color: "#f5f7fa", weight: 4, opacity: 0.7 },
+        { color: "#c4ff5b", weight: 6, opacity: 0.95 },
+        { color: "#7fb5ff", weight: 5, opacity: 0.8 },
+        { color: "#f7f8fb", weight: 4, opacity: 0.7 },
         { color: "#ffb84d", weight: 4, opacity: 0.7 },
+      ];
+
+      const priorityDefinitions = [
+        { key: "pavement_preference", label: "Pavement", format: value => value.toFixed(2) },
+        { key: "quiet_preference", label: "Quiet", format: value => value.toFixed(2) },
+        { key: "green_preference", label: "Green", format: value => value.toFixed(2) },
+        { key: "hill_preference", label: "Hills", format: value => value.toFixed(2) },
       ];
 
       function setStatus(message, isError = false) {
         statusEl.textContent = message;
-        statusEl.style.color = isError ? "#ff8aa3" : "#afb3bf";
+        statusEl.style.color = isError ? "var(--error)" : "var(--muted)";
+        overlayStatusEl.textContent = message;
+        overlayStatusEl.style.color = isError ? "var(--error)" : "var(--muted)";
       }
 
       function parseCenter() {
@@ -424,11 +805,50 @@
         centerMarker = L.marker([lat, lon]).addTo(map);
         radiusCircle = L.circle([lat, lon], {
           radius: radiusMiles * 1609.344,
-          color: "#c8ff55",
-          opacity: 0.65,
+          color: "#c4ff5b",
+          opacity: 0.68,
           fillOpacity: 0.05,
           weight: 2,
         }).addTo(map);
+
+        specSnapshotEl.textContent =
+          `${lat.toFixed(4)}, ${lon.toFixed(4)} · ${radiusMiles.toFixed(1)} mi start radius`;
+      }
+
+      function renderPriorityPills(plan) {
+        const values = plan
+          ? priorityDefinitions.map(def => ({
+              label: def.label,
+              value: def.format(plan[def.key]),
+            }))
+          : priorityDefinitions.map(def => ({
+              label: def.label,
+              value: document.getElementById(
+                def.key === "pavement_preference" ? "pavement" :
+                def.key === "quiet_preference" ? "quiet" :
+                def.key === "green_preference" ? "green" : "hills"
+              ).value,
+            }));
+
+        priorityRowEl.innerHTML = values
+          .map(item => `<span class="pill">${item.label}: ${item.value}</span>`)
+          .join("");
+      }
+
+      function renderSpecHeader(planKey = "") {
+        const plan = planPresets[planKey];
+        if (!plan) {
+          specNameEl.textContent = "Custom Spec";
+          specCodeEl.textContent = "CUSTOM";
+          planMetaEl.textContent = "Custom plan. Adjust fields directly.";
+          renderPriorityPills(null);
+          return;
+        }
+
+        specNameEl.textContent = plan.label;
+        specCodeEl.textContent = plan.category.toUpperCase();
+        planMetaEl.textContent = `${plan.category} plan tuned for ${plan.design_brief.toLowerCase()}`;
+        renderPriorityPills(plan);
       }
 
       function clearRoutes() {
@@ -438,7 +858,12 @@
         startMarkers = [];
         currentCandidates = [];
         selectedIndex = 0;
-        resultsEl.innerHTML = '<div class="meta">No routes yet. Generate a loop to inspect candidates.</div>';
+        candidateListEl.innerHTML =
+          '<div class="candidate-empty">No routes yet. Scout the area to populate the route collection.</div>';
+        selectedRouteEl.innerHTML =
+          '<div class="route-detail-empty">No route selected yet. Generate candidates and click one to inspect its reasons, features, and stats.</div>';
+        llmNoteEl.textContent = "";
+        mapRecommendationEl.textContent = "Generate routes to see the recommended loop.";
       }
 
       function renderDebug(info) {
@@ -447,13 +872,13 @@
           return;
         }
         debugMetaEl.textContent =
-          `center=${info.center_coord} | profile=${info.profile} | miles=${info.target_distance_miles} | radius=${info.start_radius_miles} | pavement=${info.effective_preferences.pavement_preference.toFixed(2)} | quiet=${info.effective_preferences.quiet_preference.toFixed(2)} | green=${info.effective_preferences.green_preference.toFixed(2)} | hills=${info.effective_preferences.hill_preference.toFixed(2)}`;
+          `center=${info.center_coord} | profile=${info.profile} | miles=${info.target_distance_miles} | radius=${info.start_radius_miles} | maxCandidates=${info.max_candidates} | seedCount=${info.seed_count} | pavement=${info.effective_preferences.pavement_preference.toFixed(2)} | quiet=${info.effective_preferences.quiet_preference.toFixed(2)} | green=${info.effective_preferences.green_preference.toFixed(2)} | hills=${info.effective_preferences.hill_preference.toFixed(2)}`;
       }
 
       function applyPlanPreset(key) {
         const plan = planPresets[key];
         if (!plan) {
-          planMetaEl.textContent = "Custom plan. Adjust fields directly.";
+          renderSpecHeader("");
           return;
         }
         document.getElementById("miles").value = plan.target_distance_miles;
@@ -463,7 +888,7 @@
         document.getElementById("green").value = plan.green_preference;
         document.getElementById("hills").value = plan.hill_preference;
         document.getElementById("brief").value = plan.design_brief || "";
-        planMetaEl.textContent = `${plan.category} · ${plan.label}`;
+        renderSpecHeader(key);
         updateCenterVisuals();
       }
 
@@ -479,6 +904,91 @@
         });
       }
 
+      function renderSelectedRoute(candidate) {
+        if (!candidate) {
+          selectedRouteEl.innerHTML =
+            '<div class="route-detail-empty">No route selected yet. Generate candidates and click one to inspect its reasons, features, and stats.</div>';
+          mapRecommendationEl.textContent = "Generate routes to see the recommended loop.";
+          return;
+        }
+
+        const summary = candidate.summary_text;
+        const badges = candidate.badges.length
+          ? candidate.badges.map(b => `<span class="badge">${b.code}</span>`).join("")
+          : '<span class="meta">No feature badges yet.</span>';
+        const breakdownRows = Object.entries(candidate.score_breakdown)
+          .map(([name, value]) => `
+            <div class="breakdown-row">
+              <div class="breakdown-head">
+                <span>${name}</span>
+                <span>${value.toFixed(2)}</span>
+              </div>
+              <div class="bar"><span style="width: ${Math.max(6, value * 100)}%"></span></div>
+            </div>
+          `)
+          .join("");
+        const strengths = summary?.strengths?.length
+          ? summary.strengths.map(item => `<li>${item}</li>`).join("")
+          : "<li>No strength summary yet.</li>";
+        const tradeoffs = summary?.tradeoffs?.length
+          ? summary.tradeoffs.map(item => `<li>${item}</li>`).join("")
+          : "<li>No major tradeoffs flagged.</li>";
+        const reasons = summary?.top_reasons?.length
+          ? summary.top_reasons.map(item => `<span class="reason-pill">${item}</span>`).join("")
+          : '<span class="meta">Overall fit</span>';
+
+        selectedRouteEl.innerHTML = `
+          <div class="detail-hero">
+            <p class="eyebrow">Recommended Route</p>
+            <h2>${summary?.headline || "Balanced route recommendation"}</h2>
+            <div class="reasons-row" style="margin-top: 12px;">${reasons}</div>
+            <div class="meta">Score ${candidate.score.toFixed(3)} · start ${candidate.start_offset_miles.toFixed(2)} mi from requested point</div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat-card">
+              <span class="stat-label">Distance</span>
+              <span class="stat-value">${candidate.summary.distance_miles.toFixed(2)} mi</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Duration</span>
+              <span class="stat-value">${candidate.summary.duration_minutes.toFixed(1)} min</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Climb</span>
+              <span class="stat-value">${candidate.summary.ascent_feet.toFixed(0)} ft</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Descent</span>
+              <span class="stat-value">${candidate.summary.descent_feet.toFixed(0)} ft</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 10px;">Feature Badges</h3>
+            <div class="badge-row">${badges}</div>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 10px;">Strengths</h3>
+            <ul class="strength-list">${strengths}</ul>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 10px;">Tradeoffs</h3>
+            <ul class="tradeoff-list">${tradeoffs}</ul>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 10px;">Score Breakdown</h3>
+            <div class="breakdown-list">${breakdownRows}</div>
+          </div>
+        `;
+
+        mapRecommendationEl.textContent =
+          summary?.headline || `${candidate.summary.distance_miles.toFixed(2)} mi recommended loop`;
+      }
+
       function focusCandidate(index) {
         selectedIndex = index;
         routeLayers.forEach((layer, layerIndex) => {
@@ -487,60 +997,52 @@
           layer.setStyle({
             color: style.color,
             weight: active ? style.weight + 2 : style.weight,
-            opacity: active ? 1 : Math.max(0.35, style.opacity - 0.25),
+            opacity: active ? 1 : Math.max(0.28, style.opacity - 0.3),
           });
         });
 
-        document.querySelectorAll(".candidate").forEach((card, cardIndex) => {
+        document.querySelectorAll(".candidate-card").forEach((card, cardIndex) => {
           card.classList.toggle("active", cardIndex === index);
         });
+
+        renderSelectedRoute(currentCandidates[index]);
       }
 
       function renderCandidates(candidates, llmSummary) {
         if (!candidates.length) {
-          resultsEl.innerHTML = '<div class="meta">No candidates returned.</div>';
+          candidateListEl.innerHTML =
+            '<div class="candidate-empty">No candidates returned for this request.</div>';
+          selectedRouteEl.innerHTML =
+            '<div class="route-detail-empty">No route detail available for this request.</div>';
           return;
         }
 
-        resultsEl.innerHTML = "";
-        if (llmSummary) {
-          const summary = document.createElement("div");
-          summary.className = "meta";
-          summary.style.marginBottom = "10px";
-          summary.textContent = `LLM brief applied: ${llmSummary}`;
-          resultsEl.appendChild(summary);
-        }
+        llmNoteEl.textContent = llmSummary ? `LLM brief applied: ${llmSummary}` : "";
+        candidateListEl.innerHTML = "";
 
         candidates.forEach((candidate, index) => {
           const card = document.createElement("article");
-          card.className = "candidate" + (index === 0 ? " active" : "");
+          card.className = "candidate-card" + (index === 0 ? " active" : "");
           const badges = candidate.badges.length
             ? candidate.badges.map(b => `<span class="badge">${b.code}</span>`).join("")
             : '<span class="meta">No badges</span>';
-          const breakdown = Object.entries(candidate.score_breakdown)
-            .map(([name, value]) => `${name}=${value.toFixed(2)}`)
-            .join(", ");
           const summary = candidate.summary_text;
-          const summaryBlock = summary
-            ? `
-              <div class="summary-copy">
-                <strong>${summary.headline}</strong><br />
-                <span class="meta">Why it won: ${summary.top_reasons.join(", ") || "overall fit"}</span>
-              </div>
-            `
-            : "";
           card.innerHTML = `
             <div class="candidate-head">
-              <strong>Candidate ${index + 1}</strong>
-              <span class="meta">Score ${candidate.score.toFixed(3)}</span>
+              <div>
+                <strong>${index === 0 ? "Recommended" : `Alternative ${index}`}</strong>
+                <div class="meta">${candidate.summary.distance_miles.toFixed(2)} mi · ${candidate.summary.duration_minutes.toFixed(1)} min · ${candidate.summary.ascent_feet.toFixed(0)} ft climb</div>
+              </div>
+              <span class="score-chip">${candidate.score.toFixed(3)}</span>
             </div>
-            <div class="meta">${candidate.summary.distance_miles.toFixed(2)} mi · ${candidate.summary.duration_minutes.toFixed(1)} min · ${candidate.summary.ascent_feet.toFixed(0)} ft climb · start ${candidate.start_offset_miles.toFixed(2)} mi away</div>
             <div class="badge-row">${badges}</div>
-            ${summaryBlock}
-            <div class="breakdown">${breakdown}</div>
+            <div class="candidate-summary">
+              <strong>${summary?.headline || "Route candidate"}</strong><br />
+              <span class="meta">Why: ${(summary?.top_reasons || []).join(", ") || "overall fit"}</span>
+            </div>
           `;
           card.addEventListener("click", () => focusCandidate(index));
-          resultsEl.appendChild(card);
+          candidateListEl.appendChild(card);
         });
       }
 
@@ -555,22 +1057,19 @@
             style: {
               color: style.color,
               weight: index === 0 ? style.weight + 2 : style.weight,
-              opacity: index === 0 ? 1 : Math.max(0.35, style.opacity - 0.25),
+              opacity: index === 0 ? 1 : Math.max(0.28, style.opacity - 0.3),
             },
           }).addTo(map);
           routeLayers.push(layer);
           bounds.push(layer.getBounds());
 
-          const marker = L.circleMarker(
-            [candidate.start_coord[1], candidate.start_coord[0]],
-            {
-              radius: 5,
-              color: style.color,
-              fillColor: style.color,
-              fillOpacity: 0.9,
-              weight: 1,
-            }
-          ).addTo(map);
+          const marker = L.circleMarker([candidate.start_coord[1], candidate.start_coord[0]], {
+            radius: 5,
+            color: style.color,
+            fillColor: style.color,
+            fillOpacity: 0.92,
+            weight: 1,
+          }).addTo(map);
           startMarkers.push(marker);
         });
 
@@ -671,10 +1170,13 @@
         setStatus("Cleared route overlays.");
       });
 
-      loadPlans().then(() => {
-        planMetaEl.textContent = "Custom plan. Adjust fields directly.";
-      });
+      Promise.resolve(loadPlans())
+        .then(() => renderSpecHeader(""))
+        .catch(() => setStatus("Unable to load starter plans.", true));
+
+      renderPriorityPills(null);
       updateCenterVisuals();
+      setStatus("Ready to scout routes.");
     </script>
   </body>
 </html>
