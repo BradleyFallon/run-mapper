@@ -14,7 +14,7 @@ from run_router.env import load_env_file
 from run_router.service import (
     RouteFeasibilityError,
     RouteError,
-    build_loop_candidates,
+    build_route_candidates,
     parse_planning_request,
     first_value,
     maybe_apply_llm_preferences,
@@ -68,6 +68,7 @@ def format_candidate(index: int, candidate) -> str:
     return "\n".join(
         [
             f"Candidate {index + 1}",
+            f"  Pattern: {candidate.pattern_type}",
             f"  Score: {candidate.score:.3f}",
             f"  Distance: {route.distance_mi:.2f} mi",
             f"  Duration: {route.duration_s / 60.0:.1f} min",
@@ -109,22 +110,8 @@ def main() -> int:
         if not api_key:
             raise RouteError("Missing ORS_API_KEY.")
 
-        candidates = build_loop_candidates(
-            api_key=api_key,
-            center=request.center,
-            start_radius_m=request.start_radius_m,
-            target_distance_m=request.target_distance_m,
-            profile=request.profile,
-            preferences=effective_preferences,
-            top_priority=request.top_priority,
-            secondary_priority=request.secondary_priority,
-            distance_tolerance_miles=request.distance_tolerance_miles,
-            non_negotiables=request.non_negotiables,
-            max_candidates=request.max_candidates,
-            seed_count=request.seed_count,
-            start_limit=request.start_limit,
-            seed_offset=request.seed_offset,
-        )
+        request.preferences = effective_preferences
+        candidates = build_route_candidates(api_key=api_key, request=request)
     except RouteFeasibilityError as exc:
         print(f"No matching route: {exc}", file=sys.stderr)
         print(json.dumps(exc.failure_analysis, indent=2), file=sys.stderr)
@@ -139,6 +126,10 @@ def main() -> int:
             "profile": request.profile,
             "target_distance_miles": request.target_distance_miles,
             "distance_tolerance_miles": request.distance_tolerance_miles,
+            "route_pattern_preference": request.route_pattern_preference,
+            "repeat_preference": request.repeat_preference,
+            "max_distance_from_start_miles": request.max_distance_from_start_miles,
+            "focus_feature": request.focus_feature,
             "top_priority": request.top_priority,
             "secondary_priority": request.secondary_priority,
             "non_negotiables": request.non_negotiables,
@@ -147,11 +138,15 @@ def main() -> int:
             "candidates": [
                 {
                     "score": candidate.score,
+                    "pattern_type": candidate.pattern_type,
+                    "pattern_metadata": candidate.pattern_metadata,
                     "score_breakdown": candidate.score_breakdown,
+                    "ranking_breakdown": candidate.ranking_breakdown,
                     "badges": [
                         {"code": badge.code, "label": badge.label, "strength": badge.strength}
                         for badge in (candidate.badges or [])
                     ],
+                    "traits": candidate.traits.__dict__ if candidate.traits else None,
                     "summary_text": (
                         {
                             "headline": candidate.summary.headline,
@@ -180,6 +175,11 @@ def main() -> int:
         print(f"Profile: {request.profile}")
         print(f"Target distance: {request.target_distance_miles:.2f} mi")
         print(f"Distance tolerance: {request.distance_tolerance_miles:.2f} mi")
+        print(f"Route pattern: {request.route_pattern_preference}")
+        print(f"Repeat preference: {request.repeat_preference}")
+        print(f"Max distance from start: {request.max_distance_from_start_miles:.2f} mi")
+        if request.focus_feature:
+            print(f"Focus feature: {request.focus_feature}")
         print(f"Top priority: {request.top_priority}")
         if request.secondary_priority:
             print(f"Secondary priority: {request.secondary_priority}")

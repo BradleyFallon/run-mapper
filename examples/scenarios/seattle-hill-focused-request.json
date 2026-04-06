@@ -1,0 +1,29 @@
+{
+  "id": "seattle-hill-focused-request",
+  "label": "Seattle hill-focused request",
+  "request": {
+    "center_coord": "-122.3583,47.6377",
+    "profile": "foot-walking",
+    "target_distance_miles": 5.0,
+    "distance_tolerance_miles": 0.6,
+    "start_radius_miles": 0.3,
+    "max_distance_from_start_miles": 1.8,
+    "route_pattern_preference": "either",
+    "repeat_preference": "as_needed",
+    "focus_feature": "climb",
+    "top_priority": "Elevation profile",
+    "secondary_priority": "Low interruptions",
+    "non_negotiables": [],
+    "pavement_preference": 0.8,
+    "quiet_preference": 0.45,
+    "green_preference": 0.45,
+    "hill_preference": 0.95,
+    "design_brief": "Strong climbing route in Seattle without drifting too far from the start."
+  },
+  "expectations": {
+    "expect_success": true,
+    "allowed_patterns": ["hill_repeat", "loop", "out_and_back"],
+    "min_hill_fit": 0.55,
+    "max_distance_from_start_miles_actual": 2.1
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "chicago-landmark-out-and-back",
+  "label": "Chicago landmark out-and-back friendly request",
+  "request": {
+    "center_coord": "-87.6233,41.8818",
+    "profile": "foot-walking",
+    "target_distance_miles": 6.0,
+    "distance_tolerance_miles": 0.7,
+    "start_radius_miles": 0.3,
+    "max_distance_from_start_miles": 3.0,
+    "route_pattern_preference": "either",
+    "repeat_preference": "none",
+    "top_priority": "Landmarks",
+    "secondary_priority": "Distance accuracy",
+    "non_negotiables": [],
+    "pavement_preference": 0.85,
+    "quiet_preference": 0.35,
+    "green_preference": 0.55,
+    "hill_preference": -0.3,
+    "design_brief": "Longer city run with recognizable sights where an out-and-back along the lakefront is acceptable."
+  },
+  "expectations": {
+    "expect_success": true,
+    "allowed_patterns": ["out_and_back", "loop"],
+    "preferred_pattern": "out_and_back",
+    "max_repeat_count": 1,
+    "max_distance_from_start_miles_actual": 3.2
+  }
+}

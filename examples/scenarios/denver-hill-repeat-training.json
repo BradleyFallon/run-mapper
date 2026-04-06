@@ -1,0 +1,30 @@
+{
+  "id": "denver-hill-repeat-training",
+  "label": "Denver hill-repeat training request",
+  "request": {
+    "center_coord": "-105.2057,39.6654",
+    "profile": "foot-walking",
+    "target_distance_miles": 5.5,
+    "distance_tolerance_miles": 0.6,
+    "start_radius_miles": 0.3,
+    "max_distance_from_start_miles": 2.0,
+    "route_pattern_preference": "either",
+    "repeat_preference": "preferred",
+    "focus_feature": "climb",
+    "top_priority": "Elevation profile",
+    "secondary_priority": "Low interruptions",
+    "non_negotiables": [],
+    "pavement_preference": 0.65,
+    "quiet_preference": 0.5,
+    "green_preference": 0.55,
+    "hill_preference": 1.0,
+    "design_brief": "Find a hilly workout route and use repeats if that is the strongest climbing option."
+  },
+  "expectations": {
+    "expect_success": true,
+    "allowed_patterns": ["hill_repeat", "loop", "out_and_back"],
+    "preferred_pattern": "hill_repeat",
+    "min_hill_fit": 0.55,
+    "max_distance_from_start_miles_actual": 2.3
+  }
+}

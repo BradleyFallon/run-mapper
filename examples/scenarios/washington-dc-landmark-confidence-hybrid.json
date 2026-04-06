@@ -1,0 +1,28 @@
+{
+  "id": "washington-dc-landmark-confidence-hybrid",
+  "label": "Washington DC landmark confidence hybrid request",
+  "request": {
+    "center_coord": "-77.0365,38.8977",
+    "profile": "foot-walking",
+    "target_distance_miles": 4.5,
+    "distance_tolerance_miles": 0.6,
+    "start_radius_miles": 0.3,
+    "max_distance_from_start_miles": 1.9,
+    "route_pattern_preference": "either",
+    "repeat_preference": "none",
+    "top_priority": "Landmarks",
+    "secondary_priority": "Lighting and confidence",
+    "non_negotiables": [],
+    "pavement_preference": 0.85,
+    "quiet_preference": 0.55,
+    "green_preference": 0.6,
+    "hill_preference": -0.1,
+    "design_brief": "Touristy route that still feels straightforward and confidence-friendly."
+  },
+  "expectations": {
+    "expect_success": true,
+    "allowed_patterns": ["loop", "out_and_back"],
+    "max_repeat_count": 1,
+    "max_distance_from_start_miles_actual": 2.2
+  }
+}

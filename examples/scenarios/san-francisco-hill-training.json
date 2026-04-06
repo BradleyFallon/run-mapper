@@ -1,0 +1,29 @@
+{
+  "id": "san-francisco-hill-training",
+  "label": "San Francisco hill-focused training request",
+  "request": {
+    "center_coord": "-122.4477,37.7544",
+    "profile": "foot-walking",
+    "target_distance_miles": 6.0,
+    "distance_tolerance_miles": 0.6,
+    "start_radius_miles": 0.3,
+    "max_distance_from_start_miles": 2.0,
+    "route_pattern_preference": "either",
+    "repeat_preference": "as_needed",
+    "focus_feature": "climb",
+    "top_priority": "Elevation profile",
+    "secondary_priority": "Distance accuracy",
+    "non_negotiables": [],
+    "pavement_preference": 0.9,
+    "quiet_preference": 0.35,
+    "green_preference": 0.35,
+    "hill_preference": 0.9,
+    "design_brief": "Give me a race-prep hill workout that hits the distance and uses strong climbing if repeats help."
+  },
+  "expectations": {
+    "expect_success": true,
+    "allowed_patterns": ["hill_repeat", "loop", "out_and_back"],
+    "min_hill_fit": 0.5,
+    "max_distance_from_start_miles_actual": 2.3
+  }
+}

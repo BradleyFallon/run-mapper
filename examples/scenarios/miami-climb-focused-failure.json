@@ -1,0 +1,27 @@
+{
+  "id": "miami-climb-focused-failure",
+  "label": "Miami climb-focused request expected to fail cleanly",
+  "request": {
+    "center_coord": "-80.1918,25.7617",
+    "profile": "foot-walking",
+    "target_distance_miles": 5.0,
+    "distance_tolerance_miles": 0.5,
+    "start_radius_miles": 0.25,
+    "max_distance_from_start_miles": 1.2,
+    "route_pattern_preference": "either",
+    "repeat_preference": "preferred",
+    "focus_feature": "climb",
+    "top_priority": "Elevation profile",
+    "secondary_priority": "Distance accuracy",
+    "non_negotiables": ["Elevation profile", "Stay close to start"],
+    "pavement_preference": 0.8,
+    "quiet_preference": 0.35,
+    "green_preference": 0.35,
+    "hill_preference": 1.0,
+    "design_brief": "Need a strong climb-focused run close to the start in very limited drift range."
+  },
+  "expectations": {
+    "expect_success": false,
+    "requires_non_negotiable_failures": ["Elevation profile"]
+  }
+}

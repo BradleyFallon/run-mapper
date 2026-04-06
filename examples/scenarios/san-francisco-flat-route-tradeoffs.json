@@ -1,0 +1,28 @@
+{
+  "id": "san-francisco-flat-route-tradeoffs",
+  "label": "San Francisco flat-route request with tradeoffs",
+  "request": {
+    "center_coord": "-122.4091,37.8078",
+    "profile": "foot-walking",
+    "target_distance_miles": 4.0,
+    "distance_tolerance_miles": 0.5,
+    "start_radius_miles": 0.25,
+    "max_distance_from_start_miles": 1.8,
+    "route_pattern_preference": "either",
+    "repeat_preference": "none",
+    "top_priority": "Elevation profile",
+    "secondary_priority": "Distance accuracy",
+    "non_negotiables": ["Distance accuracy"],
+    "pavement_preference": 0.9,
+    "quiet_preference": 0.45,
+    "green_preference": 0.35,
+    "hill_preference": -0.85,
+    "design_brief": "Keep this run as flat as possible for San Francisco while still landing close to four miles."
+  },
+  "expectations": {
+    "expect_success": true,
+    "allowed_patterns": ["loop", "out_and_back"],
+    "max_repeat_count": 1,
+    "max_distance_from_start_miles_actual": 2.0
+  }
+}

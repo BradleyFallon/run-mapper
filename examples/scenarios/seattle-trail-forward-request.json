@@ -1,0 +1,28 @@
+{
+  "id": "seattle-trail-forward-request",
+  "label": "Seattle trail-forward request",
+  "request": {
+    "center_coord": "-122.4044,47.6588",
+    "profile": "foot-hiking",
+    "target_distance_miles": 4.5,
+    "distance_tolerance_miles": 0.7,
+    "start_radius_miles": 0.35,
+    "max_distance_from_start_miles": 1.8,
+    "route_pattern_preference": "loop",
+    "repeat_preference": "none",
+    "top_priority": "Trail quality",
+    "secondary_priority": "Nature access",
+    "non_negotiables": ["Trail quality"],
+    "pavement_preference": 0.2,
+    "quiet_preference": 0.75,
+    "green_preference": 0.9,
+    "hill_preference": 0.3,
+    "design_brief": "Trail-forward loop with nature feel and manageable terrain."
+  },
+  "expectations": {
+    "expect_success": true,
+    "allowed_patterns": ["loop"],
+    "max_repeat_count": 1,
+    "max_distance_from_start_miles_actual": 2.0
+  }
+}

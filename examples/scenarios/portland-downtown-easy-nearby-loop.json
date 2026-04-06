@@ -1,0 +1,31 @@
+{
+  "id": "portland-downtown-easy-nearby-loop",
+  "label": "Portland downtown easy nearby loop",
+  "request": {
+    "center_coord": "-122.6765,45.5236",
+    "profile": "foot-walking",
+    "target_distance_miles": 4.0,
+    "distance_tolerance_miles": 0.5,
+    "start_radius_miles": 0.3,
+    "max_distance_from_start_miles": 1.3,
+    "route_pattern_preference": "loop",
+    "repeat_preference": "none",
+    "top_priority": "Closer start",
+    "secondary_priority": "Distance accuracy",
+    "non_negotiables": ["Distance accuracy", "Stay close to start"],
+    "pavement_preference": 0.8,
+    "quiet_preference": 0.55,
+    "green_preference": 0.45,
+    "hill_preference": -0.2,
+    "design_brief": "Easy downtown loop that starts close, stays pretty tight, and lands near four miles."
+  },
+  "expectations": {
+    "expect_success": true,
+    "allowed_patterns": ["loop"],
+    "preferred_pattern": "loop",
+    "requires_top_reasons": ["start proximity"],
+    "max_distance_error_miles": 0.5,
+    "max_repeat_count": 1,
+    "max_distance_from_start_miles_actual": 1.5
+  }
+}

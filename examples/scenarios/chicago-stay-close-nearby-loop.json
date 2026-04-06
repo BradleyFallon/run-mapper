@@ -1,0 +1,30 @@
+{
+  "id": "chicago-stay-close-nearby-loop",
+  "label": "Chicago stay-close nearby loop",
+  "request": {
+    "center_coord": "-87.6298,41.8781",
+    "profile": "foot-walking",
+    "target_distance_miles": 3.0,
+    "distance_tolerance_miles": 0.4,
+    "start_radius_miles": 0.2,
+    "max_distance_from_start_miles": 0.9,
+    "route_pattern_preference": "loop",
+    "repeat_preference": "none",
+    "top_priority": "Closer start",
+    "secondary_priority": "Simple navigation",
+    "non_negotiables": ["Stay close to start", "Distance accuracy"],
+    "pavement_preference": 0.85,
+    "quiet_preference": 0.45,
+    "green_preference": 0.35,
+    "hill_preference": -0.5,
+    "design_brief": "Tight nearby downtown loop that stays close and simple."
+  },
+  "expectations": {
+    "expect_success": true,
+    "allowed_patterns": ["loop"],
+    "preferred_pattern": "loop",
+    "requires_top_reasons": ["start proximity"],
+    "max_repeat_count": 1,
+    "max_distance_from_start_miles_actual": 1.1
+  }
+}

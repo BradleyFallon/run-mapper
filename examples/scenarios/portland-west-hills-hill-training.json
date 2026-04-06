@@ -1,0 +1,30 @@
+{
+  "id": "portland-west-hills-hill-training",
+  "label": "Portland west hills hill training",
+  "request": {
+    "center_coord": "-122.7070,45.5262",
+    "profile": "foot-walking",
+    "target_distance_miles": 5.5,
+    "distance_tolerance_miles": 0.6,
+    "start_radius_miles": 0.25,
+    "max_distance_from_start_miles": 1.8,
+    "route_pattern_preference": "either",
+    "repeat_preference": "as_needed",
+    "focus_feature": "climb",
+    "top_priority": "Elevation profile",
+    "secondary_priority": "Distance accuracy",
+    "non_negotiables": [],
+    "pavement_preference": 0.8,
+    "quiet_preference": 0.45,
+    "green_preference": 0.55,
+    "hill_preference": 0.9,
+    "design_brief": "Hilly Portland west hills workout that stays reasonably close to the start and favors real climbing."
+  },
+  "expectations": {
+    "expect_success": true,
+    "allowed_patterns": ["hill_repeat", "loop", "out_and_back"],
+    "min_hill_fit": 0.5,
+    "max_distance_error_miles": 0.8,
+    "max_distance_from_start_miles_actual": 2.1
+  }
+}

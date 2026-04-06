@@ -124,6 +124,7 @@
       .panel-left {
         border-right: 1px solid var(--border);
         background: rgba(17, 13, 23, 0.86);
+        overflow-y: hidden;
       }
 
       .panel-right {
@@ -168,6 +169,85 @@
       .surface h2 {
         font-size: 18px;
         margin-bottom: 12px;
+      }
+
+      .surface-tight {
+        margin-bottom: 10px;
+      }
+
+      .action-bar {
+        display: grid;
+        gap: 10px;
+      }
+
+      .accordion-stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .accordion {
+        margin-bottom: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .accordion[open] {
+        background: linear-gradient(180deg, rgba(29, 24, 38, 0.98), rgba(16, 13, 23, 0.98));
+      }
+
+      .accordion-header {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        cursor: pointer;
+      }
+
+      .accordion-header::-webkit-details-marker {
+        display: none;
+      }
+
+      .accordion-title {
+        display: grid;
+        gap: 4px;
+      }
+
+      .accordion-title h2 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .accordion-subtitle {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .accordion-chevron {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 14px;
+        flex: 0 0 auto;
+        transition: transform 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+      }
+
+      .accordion[open] .accordion-chevron {
+        transform: rotate(180deg);
+        color: var(--accent);
+        border-color: rgba(196, 255, 91, 0.22);
+      }
+
+      .accordion-body {
+        padding: 0 16px 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
       }
 
       .field {
@@ -224,6 +304,10 @@
       .spec-summary {
         display: grid;
         gap: 10px;
+      }
+
+      .spec-card.compact {
+        padding: 14px;
       }
 
       .priority-list,
@@ -573,143 +657,208 @@
 
       <main class="workspace">
         <aside class="panel panel-left">
-          <section class="surface">
-            <h2>Scout Spec</h2>
-            <div class="field">
-              <label for="planPreset">Starter plan</label>
-              <select id="planPreset">
-                <option value="">Custom</option>
-              </select>
-            </div>
-
-            <div class="spec-card">
-              <div class="spec-head">
-                <div>
-                  <p class="eyebrow">Active Plan</p>
-                  <h3 id="specName" class="spec-name">Custom Spec</h3>
-                </div>
-                <div id="specCode" class="code-chip">CUSTOM</div>
-              </div>
-              <div id="planMeta" class="meta">Custom plan. Adjust fields directly.</div>
-              <div id="priorityMeta" class="meta" style="margin-top: 10px;"></div>
-              <div id="priorityRow" class="priority-pill-row" style="margin-top: 12px;"></div>
-            </div>
-          </section>
-
-          <section class="surface">
-            <h2>Start</h2>
-            <div class="grid-2">
+          <section class="surface surface-tight">
+            <div class="action-bar">
               <div class="field">
-                <label for="lat">Latitude</label>
-                <input id="lat" type="number" step="any" value="45.5236" />
-              </div>
-              <div class="field">
-                <label for="lon">Longitude</label>
-                <input id="lon" type="number" step="any" value="-122.6765" />
-              </div>
-            </div>
-            <div class="field">
-              <label for="radius">Start radius miles</label>
-              <input id="radius" type="number" step="0.1" min="0" value="0.2" />
-            </div>
-            <div class="button-row">
-              <button id="locateBtn" class="secondary" type="button">Use My Location</button>
-              <button id="dropPinBtn" type="button">Click Map To Set Start</button>
-            </div>
-          </section>
-
-          <section class="surface">
-            <h2>Run Intent</h2>
-            <div class="grid-2">
-              <div class="field">
-                <label for="miles">Target miles</label>
-                <input id="miles" type="number" step="0.1" min="0.1" value="3.0" />
-              </div>
-              <div class="field">
-                <label for="tolerance">Distance tolerance</label>
-                <input id="tolerance" type="number" step="0.1" min="0" value="0.5" />
-              </div>
-            </div>
-            <div class="grid-2">
-              <div class="field">
-                <label for="profile">Profile</label>
-                <select id="profile">
-                  <option value="foot-walking" selected>foot-walking</option>
-                  <option value="foot-hiking">foot-hiking</option>
+                <label for="planPreset">Starter plan</label>
+                <select id="planPreset">
+                  <option value="">Custom</option>
                 </select>
               </div>
-            </div>
-            <div class="grid-2">
-              <div class="field">
-                <label for="maxCandidates">Candidates</label>
-                <input id="maxCandidates" type="number" min="1" max="8" value="3" />
+
+              <div class="spec-card compact">
+                <div class="spec-head">
+                  <div>
+                    <p class="eyebrow">Active Plan</p>
+                    <h3 id="specName" class="spec-name">Custom Spec</h3>
+                  </div>
+                  <div id="specCode" class="code-chip">CUSTOM</div>
+                </div>
+                <div id="planMeta" class="meta">Custom plan. Adjust fields directly.</div>
+                <div id="priorityMeta" class="meta" style="margin-top: 10px;"></div>
+                <div id="priorityRow" class="priority-pill-row" style="margin-top: 12px;"></div>
               </div>
-              <div class="field">
-                <label for="seedCount">Seed count</label>
-                <input id="seedCount" type="number" min="1" max="8" value="3" />
+
+              <div class="button-row">
+                <button id="generateBtn" class="primary" type="button">Scout Routes</button>
+                <button id="rerollBtn" class="secondary" type="button">Reroll Candidates</button>
+                <button id="clearBtn" type="button">Clear</button>
               </div>
+              <div id="status" class="status"></div>
             </div>
           </section>
 
-          <section class="surface">
-            <h2>Priorities</h2>
-            <div class="grid-2">
-              <div class="field">
-                <label for="topPriority">Top priority</label>
-                <select id="topPriority"></select>
+          <div class="accordion-stack">
+            <details class="surface accordion" open>
+              <summary class="accordion-header">
+                <div class="accordion-title">
+                  <h2>Start</h2>
+                  <div class="accordion-subtitle">Pick a start point or use your current location.</div>
+                </div>
+                <span class="accordion-chevron">⌄</span>
+              </summary>
+              <div class="accordion-body">
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="lat">Latitude</label>
+                    <input id="lat" type="number" step="any" value="45.5236" />
+                  </div>
+                  <div class="field">
+                    <label for="lon">Longitude</label>
+                    <input id="lon" type="number" step="any" value="-122.6765" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="radius">Start radius miles</label>
+                  <input id="radius" type="number" step="0.1" min="0" value="0.2" />
+                </div>
+                <div class="button-row">
+                  <button id="locateBtn" class="secondary" type="button">Use My Location</button>
+                  <button id="dropPinBtn" type="button">Click Map To Set Start</button>
+                </div>
               </div>
-              <div class="field">
-                <label for="secondaryPriority">Secondary priority</label>
-                <select id="secondaryPriority"></select>
+            </details>
+
+            <details class="surface accordion">
+              <summary class="accordion-header">
+                <div class="accordion-title">
+                  <h2>Run Intent</h2>
+                  <div class="accordion-subtitle">Distance, tolerance, profile, and candidate count.</div>
+                </div>
+                <span class="accordion-chevron">⌄</span>
+              </summary>
+              <div class="accordion-body">
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="miles">Target miles</label>
+                    <input id="miles" type="number" step="0.1" min="0.1" value="3.0" />
+                  </div>
+                  <div class="field">
+                    <label for="tolerance">Distance tolerance</label>
+                    <input id="tolerance" type="number" step="0.1" min="0" value="0.5" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="profile">Profile</label>
+                    <select id="profile">
+                      <option value="foot-walking" selected>foot-walking</option>
+                      <option value="foot-hiking">foot-hiking</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="routePattern">Route pattern</label>
+                    <select id="routePattern"></select>
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="repeatPreference">Repeat preference</label>
+                    <select id="repeatPreference"></select>
+                  </div>
+                  <div class="field">
+                    <label for="maxDistanceFromStart">Max distance from start</label>
+                    <input id="maxDistanceFromStart" type="number" step="0.1" min="0.1" value="1.0" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="maxCandidates">Candidates</label>
+                    <input id="maxCandidates" type="number" min="1" max="8" value="3" />
+                  </div>
+                  <div class="field">
+                    <label for="seedCount">Seed count</label>
+                    <input id="seedCount" type="number" min="1" max="8" value="3" />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="field">
-              <label for="nonNegotiables">Non-negotiables</label>
-              <select id="nonNegotiables" multiple size="5"></select>
-            </div>
-            <div class="meta" style="margin-bottom: 12px;">
-              Hold Command or Control to select more than one hard requirement.
-            </div>
-            <div class="field">
-              <label for="pavement">Pavement</label>
-              <input id="pavement" type="range" min="0" max="1" step="0.05" value="0.8" />
-            </div>
-            <div class="field">
-              <label for="quiet">Quiet</label>
-              <input id="quiet" type="range" min="0" max="1" step="0.05" value="0.8" />
-            </div>
-            <div class="field">
-              <label for="green">Green</label>
-              <input id="green" type="range" min="0" max="1" step="0.05" value="0.7" />
-            </div>
-            <div class="field">
-              <label for="hills">Hills (-1 flat, 1 hilly)</label>
-              <input id="hills" type="range" min="-1" max="1" step="0.05" value="0" />
-            </div>
-          </section>
+            </details>
 
-          <section class="surface">
-            <h2>Natural Language Brief</h2>
-            <div class="field">
-              <label for="brief">Optional design brief</label>
-              <textarea
-                id="brief"
-                rows="4"
-                placeholder="Quiet, paved morning loop with gentle hills."
-              ></textarea>
-            </div>
-            <div class="button-row">
-              <button id="generateBtn" class="primary" type="button">Scout Routes</button>
-              <button id="rerollBtn" class="secondary" type="button">Reroll Candidates</button>
-              <button id="clearBtn" type="button">Clear</button>
-            </div>
-            <div id="status" class="status" style="margin-top: 10px;"></div>
-          </section>
+            <details class="surface accordion">
+              <summary class="accordion-header">
+                <div class="accordion-title">
+                  <h2>Priorities</h2>
+                  <div class="accordion-subtitle">Rank what matters most and mark hard requirements.</div>
+                </div>
+                <span class="accordion-chevron">⌄</span>
+              </summary>
+              <div class="accordion-body">
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="topPriority">Top priority</label>
+                    <select id="topPriority"></select>
+                  </div>
+                  <div class="field">
+                    <label for="secondaryPriority">Secondary priority</label>
+                    <select id="secondaryPriority"></select>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="nonNegotiables">Non-negotiables</label>
+                  <select id="nonNegotiables" multiple size="5"></select>
+                </div>
+                <div class="meta" style="margin-bottom: 12px;">
+                  Hold Command or Control to select more than one hard requirement.
+                </div>
+                <div class="field">
+                  <label for="pavement">Pavement</label>
+                  <input id="pavement" type="range" min="0" max="1" step="0.05" value="0.8" />
+                </div>
+                <div class="field">
+                  <label for="quiet">Quiet</label>
+                  <input id="quiet" type="range" min="0" max="1" step="0.05" value="0.8" />
+                </div>
+                <div class="field">
+                  <label for="green">Green</label>
+                  <input id="green" type="range" min="0" max="1" step="0.05" value="0.7" />
+                </div>
+                <div class="field">
+                  <label for="hills">Hills (-1 flat, 1 hilly)</label>
+                  <input id="hills" type="range" min="-1" max="1" step="0.05" value="0" />
+                </div>
+                <div class="field">
+                  <label for="focusFeature">Focus feature</label>
+                  <select id="focusFeature">
+                    <option value="">Auto</option>
+                    <option value="climb">climb</option>
+                  </select>
+                </div>
+              </div>
+            </details>
 
-          <section class="surface">
-            <h2>Request Debug</h2>
-            <div id="debugMeta" class="meta">No request yet.</div>
-          </section>
+            <details class="surface accordion">
+              <summary class="accordion-header">
+                <div class="accordion-title">
+                  <h2>Brief</h2>
+                  <div class="accordion-subtitle">Optional natural-language hint for the planner.</div>
+                </div>
+                <span class="accordion-chevron">⌄</span>
+              </summary>
+              <div class="accordion-body">
+                <div class="field">
+                  <label for="brief">Optional design brief</label>
+                  <textarea
+                    id="brief"
+                    rows="4"
+                    placeholder="Quiet, paved morning loop with gentle hills."
+                  ></textarea>
+                </div>
+              </div>
+            </details>
+
+            <details class="surface accordion">
+              <summary class="accordion-header">
+                <div class="accordion-title">
+                  <h2>Request Debug</h2>
+                  <div class="accordion-subtitle">Inspect the normalized request sent into the route engine.</div>
+                </div>
+                <span class="accordion-chevron">⌄</span>
+              </summary>
+              <div class="accordion-body">
+                <div id="debugMeta" class="meta">No request yet.</div>
+              </div>
+            </details>
+          </div>
         </aside>
 
         <section class="panel panel-center">
@@ -805,6 +954,10 @@
       const topPriorityEl = document.getElementById("topPriority");
       const secondaryPriorityEl = document.getElementById("secondaryPriority");
       const nonNegotiablesEl = document.getElementById("nonNegotiables");
+      const routePatternEl = document.getElementById("routePattern");
+      const repeatPreferenceEl = document.getElementById("repeatPreference");
+      const maxDistanceFromStartEl = document.getElementById("maxDistanceFromStart");
+      const focusFeatureEl = document.getElementById("focusFeature");
       const latEl = document.getElementById("lat");
       const lonEl = document.getElementById("lon");
       const radiusEl = document.getElementById("radius");
@@ -825,10 +978,13 @@
       let selectedIndex = 0;
       let planPresets = {};
       let priorityOptions = [];
+      let routePatternOptions = [];
+      let repeatPreferenceOptions = [];
       let nonNegotiableOptions = [];
       let generationCounter = 0;
       let activeGenerationId = null;
       let generationHistory = [];
+      const accordionEls = Array.from(document.querySelectorAll(".accordion"));
 
       const routeStyles = [
         { color: "#c4ff5b", weight: 6, opacity: 0.95 },
@@ -931,11 +1087,14 @@
         const plan = planPresets[planKey];
         const activeTop = topPriorityEl.value || plan?.top_priority || "Distance accuracy";
         const activeSecondary = secondaryPriorityEl.value || plan?.secondary_priority || "";
+        const activePattern = routePatternEl.value || plan?.route_pattern_preference || "loop";
+        const activeRepeat = repeatPreferenceEl.value || plan?.repeat_preference || "none";
+        const activeMaxDistance = maxDistanceFromStartEl.value || plan?.max_distance_from_start_miles || "1.0";
         if (!plan) {
           specNameEl.textContent = "Custom Spec";
           specCodeEl.textContent = "CUSTOM";
           planMetaEl.textContent = "Custom plan. Adjust fields directly.";
-          priorityMetaEl.textContent = `Top priority: ${activeTop} · Secondary: ${activeSecondary || "None"}`;
+          priorityMetaEl.textContent = `Top priority: ${activeTop} · Secondary: ${activeSecondary || "None"} · Pattern: ${activePattern} · Repeat: ${activeRepeat} · Drift cap: ${activeMaxDistance} mi`;
           renderPriorityPills(null);
           return;
         }
@@ -944,13 +1103,29 @@
         specCodeEl.textContent = plan.category.toUpperCase();
         planMetaEl.textContent = `${plan.category} plan tuned for ${plan.design_brief.toLowerCase()}`;
         priorityMetaEl.textContent =
-          `Top priority: ${activeTop} · Secondary: ${activeSecondary || "None"} · Support: ${plan.supporting_trait}`;
+          `Top priority: ${activeTop} · Secondary: ${activeSecondary || "None"} · Pattern: ${activePattern} · Repeat: ${activeRepeat} · Drift cap: ${activeMaxDistance} mi · Support: ${plan.supporting_trait}`;
         renderPriorityPills(plan);
+      }
+
+      function setAccordionOpen(target) {
+        accordionEls.forEach((item) => {
+          item.open = item === target;
+        });
       }
 
       function currentPlanLabel() {
         const plan = planPresets[activePlanKey()];
         return plan ? plan.label : "Custom Spec";
+      }
+
+      function labelizePattern(value) {
+        if (!value) return "Auto";
+        return value.replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase());
+      }
+
+      function formatMiles(value) {
+        const numeric = Number(value);
+        return Number.isFinite(numeric) ? `${numeric.toFixed(1)} mi` : "n/a";
       }
 
       function renderCompareSets() {
@@ -972,6 +1147,7 @@
               <div class="meta">${entry.planLabel} · ${entry.topSummary || "No summary"}</div>
               <div class="meta">${entry.topDistance}</div>
               <div class="meta">Top: ${entry.topPriority || "Distance accuracy"}${entry.secondaryPriority ? ` · Secondary: ${entry.secondaryPriority}` : ""}</div>
+              <div class="meta">${labelizePattern(entry.routePattern || "loop")} · ${labelizePattern(entry.repeatPreference || "none")} repeats · Drift ${formatMiles(entry.maxDistanceFromStart)}</div>
             `;
             card.addEventListener("click", () => restoreGeneration(entry.id));
             compareSetsEl.appendChild(card);
@@ -1001,7 +1177,7 @@
           return;
         }
         debugMetaEl.textContent =
-          `center=${info.center_coord} | profile=${info.profile} | miles=${info.target_distance_miles} | radius=${info.start_radius_miles} | top=${info.top_priority} | secondary=${info.secondary_priority || "None"} | maxCandidates=${info.max_candidates} | seedCount=${info.seed_count} | seedOffset=${info.seed_offset} | pavement=${info.effective_preferences.pavement_preference.toFixed(2)} | quiet=${info.effective_preferences.quiet_preference.toFixed(2)} | green=${info.effective_preferences.green_preference.toFixed(2)} | hills=${info.effective_preferences.hill_preference.toFixed(2)}`;
+          `center=${info.center_coord} | profile=${info.profile} | miles=${info.target_distance_miles} | radius=${info.start_radius_miles} | drift=${info.max_distance_from_start_miles} | pattern=${info.route_pattern_preference} | repeat=${info.repeat_preference} | focus=${info.focus_feature || "auto"} | top=${info.top_priority} | secondary=${info.secondary_priority || "None"} | maxCandidates=${info.max_candidates} | seedCount=${info.seed_count} | seedOffset=${info.seed_offset} | pavement=${info.effective_preferences.pavement_preference.toFixed(2)} | quiet=${info.effective_preferences.quiet_preference.toFixed(2)} | green=${info.effective_preferences.green_preference.toFixed(2)} | hills=${info.effective_preferences.hill_preference.toFixed(2)}`;
       }
 
       function renderFailureAnalysis(analysis) {
@@ -1009,6 +1185,9 @@
           .map((item) => `
             <li>${item.name}: best score ${item.best_score != null ? item.best_score.toFixed(2) : "n/a"}${item.threshold != null ? ` vs threshold ${item.threshold}` : ""}. ${item.detail || ""}</li>
           `)
+          .join("");
+        const locationNotes = (analysis.location_notes || [])
+          .map((item) => `<li>${item}</li>`)
           .join("");
         const nearMissRows = (analysis.near_misses || [])
           .map((item) => `
@@ -1024,6 +1203,10 @@
           <div>
             <h3 style="margin-bottom: 10px;">Unmet Criteria</h3>
             <ul class="tradeoff-list">${requirementRows || "<li>No detailed failure breakdown available.</li>"}</ul>
+          </div>
+          <div>
+            <h3 style="margin-bottom: 10px;">Area Notes</h3>
+            <ul class="tradeoff-list">${locationNotes || "<li>No area-level notes available.</li>"}</ul>
           </div>
           <div>
             <h3 style="margin-bottom: 10px;">Closest Matches</h3>
@@ -1066,9 +1249,14 @@
         document.getElementById("brief").value = plan.design_brief || "";
         topPriorityEl.value = plan.top_priority || "Distance accuracy";
         secondaryPriorityEl.value = plan.secondary_priority || "";
+        routePatternEl.value = plan.route_pattern_preference || "loop";
+        repeatPreferenceEl.value = plan.repeat_preference || "none";
+        maxDistanceFromStartEl.value = plan.max_distance_from_start_miles || 1.0;
+        focusFeatureEl.value = plan.focus_feature || "";
         setSelectedValues(nonNegotiablesEl, []);
         renderSpecHeader(key);
         updateCenterVisuals();
+        if (accordionEls[1]) setAccordionOpen(accordionEls[1]);
       }
 
       async function loadPlans() {
@@ -1076,9 +1264,13 @@
         const data = await response.json();
         planPresets = data.plans || {};
         priorityOptions = data.priorities || [];
+        routePatternOptions = data.route_patterns || [];
+        repeatPreferenceOptions = data.repeat_preferences || [];
         nonNegotiableOptions = data.non_negotiables || [];
         fillPrioritySelect(topPriorityEl, priorityOptions);
         fillPrioritySelect(secondaryPriorityEl, priorityOptions, { allowEmpty: true });
+        fillPrioritySelect(routePatternEl, routePatternOptions);
+        fillPrioritySelect(repeatPreferenceEl, repeatPreferenceOptions);
         fillPrioritySelect(nonNegotiablesEl, nonNegotiableOptions);
         Object.entries(planPresets).forEach(([key, plan]) => {
           const option = document.createElement("option");
@@ -1139,7 +1331,35 @@
           traits.average_green != null ? `Green ${traits.average_green.toFixed(1)}` : null,
           traits.average_noise != null ? `Noise ${traits.average_noise.toFixed(1)}` : null,
           traits.ascent_ft_per_mi != null ? `${traits.ascent_ft_per_mi.toFixed(0)} ft/mi` : null,
+          traits.turns_per_mile != null ? `${traits.turns_per_mile.toFixed(1)} turns/mi` : null,
+          traits.landmark_count != null ? `${traits.landmark_count} landmarks` : null,
+          traits.park_count != null ? `${traits.park_count} parks` : null,
         ].filter(Boolean);
+        const patternMetadata = candidate.pattern_metadata || {};
+        const patternRows = [
+          `<li>pattern: ${labelizePattern(candidate.pattern_type || "loop")}</li>`,
+          traits.repeat_count != null ? `<li>repeat blocks: ${traits.repeat_count}</li>` : "",
+          traits.max_distance_from_start_miles_actual != null
+            ? `<li>farthest point from start: ${traits.max_distance_from_start_miles_actual.toFixed(2)} mi</li>`
+            : "",
+          traits.outbound_distance_miles != null
+            ? `<li>outbound leg: ${traits.outbound_distance_miles.toFixed(2)} mi before turnaround</li>`
+            : "",
+          traits.anchor_distance_miles != null
+            ? `<li>anchor distance: ${traits.anchor_distance_miles.toFixed(2)} mi from start</li>`
+            : "",
+          traits.repeat_segment_distance_miles != null
+            ? `<li>repeat segment: ${traits.repeat_segment_distance_miles.toFixed(2)} mi per repeat</li>`
+            : "",
+          traits.repeat_segment_climb_feet != null
+            ? `<li>repeat segment climb: ${traits.repeat_segment_climb_feet.toFixed(0)} ft</li>`
+            : "",
+          traits.repeat_segment_ft_per_mile != null
+            ? `<li>repeat segment density: ${traits.repeat_segment_ft_per_mile.toFixed(0)} ft/mi</li>`
+            : "",
+          patternMetadata.synthetic_composition ? "<li>composed from multiple routing legs.</li>" : "",
+        ].filter(Boolean).join("");
+        const poiSummary = candidate.poi_summary || {};
         const extraSummary = Object.entries(candidate.extra_summary || {})
           .map(([key, items]) => {
             const sample = items
@@ -1148,6 +1368,15 @@
             return `<li>${key}: ${sample}</li>`;
           })
           .join("");
+        const evidenceRows = [
+          extraSummary,
+          poiSummary.total_count != null
+            ? `<li>poi: ${poiSummary.total_count} nearby points of interest · ${poiSummary.landmark_count || 0} landmark-type · ${poiSummary.park_count || 0} parks · ${poiSummary.water_count || 0} water features</li>`
+            : "",
+          traits.turn_count != null
+            ? `<li>turns: ${traits.turn_count} meaningful turns · ${traits.sharp_turn_count || 0} sharp turns</li>`
+            : "",
+        ].filter(Boolean).join("");
 
         selectedRouteEl.innerHTML = `
           <div class="detail-hero">
@@ -1156,6 +1385,7 @@
             <div class="reasons-row" style="margin-top: 12px;">${reasons}</div>
             <div class="meta">Score ${candidate.score.toFixed(3)} · start ${candidate.start_offset_miles.toFixed(2)} mi from requested point</div>
             <div class="meta" style="margin-top: 8px;">Priority-weighted for top ${topPriorityEl.value || "Distance accuracy"}${secondaryPriorityEl.value ? ` and secondary ${secondaryPriorityEl.value}` : ""}.</div>
+            <div class="meta" style="margin-top: 8px;">Pattern: ${labelizePattern(candidate.pattern_type || "loop")} · Repeat mode ${labelizePattern(repeatPreferenceEl.value || "none")} · Drift cap ${formatMiles(maxDistanceFromStartEl.value)}</div>
           </div>
 
           <div class="stat-grid">
@@ -1188,6 +1418,11 @@
           </div>
 
           <div>
+            <h3 style="margin-bottom: 10px;">Pattern Details</h3>
+            <ul class="tradeoff-list">${patternRows || "<li>No pattern-specific details available.</li>"}</ul>
+          </div>
+
+          <div>
             <h3 style="margin-bottom: 10px;">Strengths</h3>
             <ul class="strength-list">${strengths}</ul>
           </div>
@@ -1209,7 +1444,7 @@
 
           <div>
             <h3 style="margin-bottom: 10px;">Route Evidence</h3>
-            <ul class="tradeoff-list">${extraSummary || "<li>No compact ORS extra summary available.</li>"}</ul>
+            <ul class="tradeoff-list">${evidenceRows || "<li>No compact ORS extra summary available.</li>"}</ul>
           </div>
         `;
 
@@ -1260,6 +1495,7 @@
               <div>
                 <strong>${index === 0 ? "Recommended" : `Alternative ${index}`}</strong>
                 <div class="meta">${candidate.summary.distance_miles.toFixed(2)} mi · ${candidate.summary.duration_minutes.toFixed(1)} min · ${candidate.summary.ascent_feet.toFixed(0)} ft climb</div>
+                <div class="meta">${labelizePattern(candidate.pattern_type || "loop")} · repeat blocks ${(candidate.traits?.repeat_count ?? 1)} · farthest point ${candidate.traits?.max_distance_from_start_miles_actual != null ? `${candidate.traits.max_distance_from_start_miles_actual.toFixed(2)} mi` : "n/a"}</div>
               </div>
               <span class="score-chip">${candidate.score.toFixed(3)}</span>
             </div>
@@ -1328,12 +1564,16 @@
           target_distance_miles: parseFloat(document.getElementById("miles").value),
           distance_tolerance_miles: parseFloat(toleranceEl.value),
           start_radius_miles: parseFloat(radiusEl.value),
+          max_distance_from_start_miles: parseFloat(maxDistanceFromStartEl.value),
           max_candidates: parseInt(document.getElementById("maxCandidates").value, 10),
           seed_count: parseInt(document.getElementById("seedCount").value, 10),
           pavement_preference: parseFloat(document.getElementById("pavement").value),
           quiet_preference: parseFloat(document.getElementById("quiet").value),
           green_preference: parseFloat(document.getElementById("green").value),
           hill_preference: parseFloat(document.getElementById("hills").value),
+          route_pattern_preference: routePatternEl.value,
+          repeat_preference: repeatPreferenceEl.value,
+          focus_feature: focusFeatureEl.value || null,
           top_priority: topPriorityEl.value,
           secondary_priority: secondaryPriorityEl.value,
           non_negotiables: selectedValues(nonNegotiablesEl),
@@ -1366,6 +1606,9 @@
             planLabel: currentPlanLabel(),
             topPriority: data.top_priority,
             secondaryPriority: data.secondary_priority,
+            routePattern: data.route_pattern_preference,
+            repeatPreference: data.repeat_preference,
+            maxDistanceFromStart: data.max_distance_from_start_miles,
             llmSummary: data.llm_summary,
             candidates: data.candidates,
             topSummary: data.candidates[0]?.summary_text?.headline || "No summary",
@@ -1426,6 +1669,10 @@
       planPresetEl.addEventListener("change", () => applyPlanPreset(planPresetEl.value));
       topPriorityEl.addEventListener("change", () => renderSpecHeader(activePlanKey() || ""));
       secondaryPriorityEl.addEventListener("change", () => renderSpecHeader(activePlanKey() || ""));
+      routePatternEl.addEventListener("change", () => renderSpecHeader(activePlanKey() || ""));
+      repeatPreferenceEl.addEventListener("change", () => renderSpecHeader(activePlanKey() || ""));
+      maxDistanceFromStartEl.addEventListener("input", () => renderSpecHeader(activePlanKey() || ""));
+      focusFeatureEl.addEventListener("change", () => renderSpecHeader(activePlanKey() || ""));
       generateBtn.addEventListener("click", () => generateRoutes({ reroll: false }));
       rerollBtn.addEventListener("click", () => generateRoutes({ reroll: true }));
       clearBtn.addEventListener("click", () => {
@@ -1437,10 +1684,20 @@
         setStatus("Cleared route overlays.");
       });
 
+      accordionEls.forEach((accordion) => {
+        accordion.addEventListener("toggle", () => {
+          if (accordion.open) {
+            setAccordionOpen(accordion);
+          }
+        });
+      });
+
       Promise.resolve(loadPlans())
         .then(() => {
           topPriorityEl.value = "Distance accuracy";
           secondaryPriorityEl.value = "Closer start";
+          routePatternEl.value = "loop";
+          repeatPreferenceEl.value = "none";
           renderSpecHeader("");
         })
         .catch(() => setStatus("Unable to load starter plans.", true));
